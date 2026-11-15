@@ -102,7 +102,12 @@ export function writesFor(data: AppData, slices: Slice[]): SliceWrite {
 
 function normaliseApprovals(stored: Partial<Approvals> | undefined): Approvals {
   const base = emptyApprovals();
-  return { ...base, ...stored, contact: { ...base.contact, ...(stored?.contact ?? {}) } };
+  return {
+    ...base,
+    ...stored,
+    contact: { ...base.contact, ...(stored?.contact ?? {}) },
+    helpCard: { ...base.helpCard, ...(stored?.helpCard ?? {}) },
+  };
 }
 
 const byOrder = <T extends { order: number }>(a: T, b: T) => a.order - b.order;

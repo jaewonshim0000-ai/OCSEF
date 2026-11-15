@@ -23,7 +23,7 @@ describe('schedule', () => {
 
   it('ignores invalid times and blank labels', () => {
     const list = todayEntries(
-      { lockedCue: '', items: [{ id: 'a', time: '25:00', label: 'Bad' }, { id: 'b', time: '09:00', label: '  ' }, { id: 'c', time: '09:00', label: 'Ok' }] },
+      { lockedCue: '', note: null, items: [{ id: 'a', time: '25:00', label: 'Bad' }, { id: 'b', time: '09:00', label: '  ' }, { id: 'c', time: '09:00', label: 'Ok' }] },
       [],
     );
     expect(list.map((e) => e.label)).toEqual(['Ok']);

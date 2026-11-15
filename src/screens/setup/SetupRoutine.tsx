@@ -40,6 +40,8 @@ export function SetupRoutine() {
         if (invalid) throw new Error('invalid time');
         const schedule: Schedule = {
           lockedCue: s.lockedCue.trim(),
+          // Today's note is saved on its own card; keep whatever is saved now.
+          note: data.schedule.note,
           items: s.items
             .filter((i) => i.label.trim() && isValidTime(i.time))
             .map((i) => ({ ...i, label: i.label.trim() }))

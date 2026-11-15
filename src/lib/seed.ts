@@ -127,6 +127,7 @@ export function demoAppData(): AppData {
         { id: 'item-bed', time: '21:30', label: 'Bedtime' },
       ],
       lockedCue: 'Lunch at noon',
+      note: null,
     },
     routines: [
       {
@@ -255,6 +256,8 @@ export function demoAppData(): AppData {
       homeCue: true,
       contact: { id: 'contact-maya', name: true, relationship: true, photo: true, call: true, voice: true },
       routineCue: true,
+      note: false,
+      helpCard: { message: '', name: true, contact: true, address: false },
     },
     prefs: { textSize: 'standard', readAloud: true, callMode: 'demo', backgroundMusic: true },
     // seedSample replaces personPin with a hash of SAMPLE_PIN.

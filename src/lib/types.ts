@@ -69,7 +69,7 @@ export interface Place {
   photo: PhotoRef | null;
   /** Landmark cue, e.g. "My front door is blue." */
   cue: string;
-  /** Optional full address. Never eligible for the locked view. */
+  /** Optional full address. Before unlock, only on the help card, and only if the helper turns it on. */
   address: string;
   landmarks: string[];
   spaces: FamiliarSpace[];
@@ -98,10 +98,18 @@ export interface ScheduleItem {
   label: string;
 }
 
+/** A note for today ("You're at the dentist…", "Maya is coming at 2"), shown until a set time. */
+export interface TodayNote {
+  text: string;
+  /** When the note stops showing (ms since epoch). */
+  until: number;
+}
+
 export interface Schedule {
   items: ScheduleItem[];
   /** The one cue that may be shown before unlock, e.g. "Lunch at noon". */
   lockedCue: string;
+  note: TodayNote | null;
 }
 
 export interface RoutineStep {
@@ -169,6 +177,18 @@ export interface Approvals {
     voice: boolean;
   };
   routineCue: boolean;
+  /** Today's note on the locked help screen. */
+  note: boolean;
+  /** What the "Show someone a message" card shares with a stranger. */
+  helpCard: HelpCardSettings;
+}
+
+export interface HelpCardSettings {
+  /** Blank means the default message. */
+  message: string;
+  name: boolean;
+  contact: boolean;
+  address: boolean;
 }
 
 export type TextSize = 'standard' | 'large' | 'xlarge';

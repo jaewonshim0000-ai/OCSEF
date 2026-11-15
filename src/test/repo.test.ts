@@ -138,6 +138,10 @@ describe('database upgrade', () => {
     expect(data.profile.preferredName).toBe('Ada');
     // Saved before lock-screen help existed: it gets the default.
     expect(data.security.lockHelp).toBe(true);
+    // Saved before the note and the help card existed: they get their defaults.
+    expect(data.schedule.note).toBeNull();
+    expect(data.approvals.note).toBe(false);
+    expect(data.approvals.helpCard).toEqual({ message: '', name: false, contact: false, address: false });
     expect(data.contacts.map((c) => c.name)).toEqual(['Lee']);
     // Contacts saved before voice messages existed get an empty message.
     expect(data.contacts[0].voice).toBeNull();

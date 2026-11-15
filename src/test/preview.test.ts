@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { emptyAppData, emptyApprovals } from '../lib/defaults';
-import { buildLockedPreview, isPreviewEmpty } from '../lib/preview';
+import { DEFAULT_HELP_MESSAGE, buildLockedPreview, isPreviewEmpty } from '../lib/preview';
 import { demoAppData } from '../lib/seed';
 import type { AppData } from '../lib/types';
 
@@ -84,7 +84,11 @@ describe('buildLockedPreview', () => {
     const data = demoAppData();
     const phoneMode = { ...data, prefs: { ...data.prefs, callMode: 'phone' as const } };
     expect(buildLockedPreview(phoneMode).contact?.call).toEqual({ mode: 'phone', phone: '07700 900123' });
-    const noCall = withApprovals(phoneMode, { contact: { ...data.approvals.contact, call: false } });
+    // The help card's "Who to call" switch is a separate choice that also shares the number.
+    const noCall = withApprovals(phoneMode, {
+      contact: { ...data.approvals.contact, call: false },
+      helpCard: { ...data.approvals.helpCard, contact: false },
+    });
     expect(JSON.stringify(buildLockedPreview(noCall))).not.toContain('07700');
   });
 
@@ -127,5 +131,58 @@ describe('buildLockedPreview', () => {
       withApprovals(data, { contact: { id: 'contact-maya', name: false, relationship: false, photo: false, call: false, voice: false } }),
     );
     expect(p.contact).toBeNull();
+  });
+});
+
+describe("today's note before unlock", () => {
+  const note = { text: '  Maya is coming at 2 today.  ', until: 1_000 };
+
+  it('shows only when its switch is on and the text is not blank', () => {
+    const data = { ...emptyAppData(), schedule: { ...emptyAppData().schedule, note } };
+    expect(buildLockedPreview(data).note).toBeNull();
+    const on = withApprovals(data, { note: true });
+    expect(buildLockedPreview(on).note).toEqual({ text: 'Maya is coming at 2 today.', until: 1_000 });
+    expect(isPreviewEmpty(buildLockedPreview(on))).toBe(false);
+    const blank = { ...on, schedule: { ...on.schedule, note: { text: '   ', until: 1_000 } } };
+    expect(buildLockedPreview(blank).note).toBeNull();
+  });
+});
+
+describe('help card', () => {
+  const card = (patch: Partial<AppData['approvals']['helpCard']>) => (data: AppData) =>
+    withApprovals(data, { helpCard: { ...data.approvals.helpCard, ...patch } });
+
+  it('shares nothing personal until switches are turned on', () => {
+    const data = { ...demoAppData(), approvals: emptyApprovals() };
+    expect(buildLockedPreview(data).helpCard).toEqual({ message: DEFAULT_HELP_MESSAGE, name: null, contact: null, address: null });
+    expect(isPreviewEmpty(buildLockedPreview(data))).toBe(true);
+  });
+
+  it('uses the helper message, the name and the address when switched on', () => {
+    const base = { ...demoAppData(), approvals: emptyApprovals() };
+    const p = buildLockedPreview(card({ message: '  I am lost.  ', name: true, address: true })(base));
+    expect(p.helpCard.message).toBe('I am lost.');
+    expect(p.helpCard.name).toBe('Peggy');
+    expect(p.helpCard.address).toBe('14 Elm Street, Riverton RT4 2AB');
+    expect(p.helpCard.contact).toBeNull();
+  });
+
+  it('names the before-unlock contact, or else the primary one, with a call only in phone mode and with a number', () => {
+    const demo = demoAppData();
+    const chosen = buildLockedPreview(card({ contact: true })(demo));
+    expect(chosen.helpCard.contact).toEqual({ name: 'Maya', call: { mode: 'demo' } });
+
+    const phoneMode = { ...demo, prefs: { ...demo.prefs, callMode: 'phone' as const } };
+    expect(buildLockedPreview(card({ contact: true })(phoneMode)).helpCard.contact?.call).toEqual({ mode: 'phone', phone: '07700 900123' });
+
+    const noneChosen = card({ contact: true })({ ...demo, approvals: { ...demo.approvals, contact: { ...demo.approvals.contact, id: null } } });
+    const primary = demo.contacts.find((c) => c.primary)!;
+    expect(buildLockedPreview(noneChosen).helpCard.contact?.name).toBe(primary.name);
+
+    const noNumber = { ...phoneMode, contacts: phoneMode.contacts.map((c) => ({ ...c, phone: '' })) };
+    expect(buildLockedPreview(card({ contact: true })(noNumber)).helpCard.contact?.call).toBeNull();
+
+    const nobody = card({ contact: true })({ ...demo, contacts: [] });
+    expect(buildLockedPreview(nobody).helpCard.contact).toBeNull();
   });
 });

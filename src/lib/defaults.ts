@@ -17,6 +17,8 @@ export function emptyApprovals(): Approvals {
     homeCue: false,
     contact: { id: null, name: false, relationship: false, photo: false, call: false, voice: false },
     routineCue: false,
+    note: false,
+    helpCard: { message: '', name: false, contact: false, address: false },
   };
 }
 
@@ -29,7 +31,7 @@ export function emptyPlace(): Place {
 }
 
 export function emptySchedule(): Schedule {
-  return { items: [], lockedCue: '' };
+  return { items: [], lockedCue: '', note: null };
 }
 
 export function defaultPrefs(): Prefs {
