@@ -8,7 +8,7 @@ import {
   eraseEverything,
   fetchDemoMedia,
   loadAppData,
-  resetToDemo,
+  seedSample,
   writesFor,
   type DemoMediaLoader,
   type Slice,
@@ -25,7 +25,10 @@ export interface Store {
   save(changes: Partial<AppData>): Promise<void>;
   addMedia(blob: Blob): Promise<MediaId>;
   mediaUrl(id: MediaId): Promise<string | null>;
-  resetToDemo(): Promise<void>;
+  /** The latest data, updated as soon as a save commits (before React re-renders). */
+  snapshot(): AppData;
+  /** Deletes everything and loads the fictional sample family. */
+  startSample(): Promise<void>;
   eraseEverything(): Promise<void>;
 }
 
@@ -83,12 +86,12 @@ export function StoreProvider({ children, backend: injected, loader = fetchDemoM
       }
       let loaded: AppData;
       try {
-        loaded = await loadAppData(backend, loader);
+        loaded = await loadAppData(backend);
       } catch {
         backend = new MemoryBackend();
         backendRef.current = backend;
         cacheRef.current.setBackend(backend);
-        loaded = await loadAppData(backend, loader);
+        loaded = await loadAppData(backend);
       }
       if (cancelled) return;
       setPersistent(backend.persistent);
@@ -109,7 +112,7 @@ export function StoreProvider({ children, backend: injected, loader = fetchDemoM
         const slices = Object.keys(changes) as Slice[];
         await backendRef.current.write(writesFor(next, slices));
         commit(next);
-        if (slices.some((s) => s !== 'approvals' && s !== 'prefs' && s !== 'schedule')) {
+        if (slices.some((s) => !['approvals', 'prefs', 'schedule', 'security', 'setup'].includes(s))) {
           // A record changed, so a replaced or removed photo may be unused now.
           // Media chosen this visit stays protected until the next visit.
           await cleanup();
@@ -131,15 +134,17 @@ export function StoreProvider({ children, backend: injected, loader = fetchDemoM
 
   const mediaUrl = useCallback((id: MediaId) => cacheRef.current.url(id), []);
 
-  const doReset = useCallback(
+  const startSample = useCallback(
     () =>
       enqueue(async () => {
         cacheRef.current.forgetAll();
         pendingMedia.current.clear();
-        commit(await resetToDemo(backendRef.current, loader));
+        commit(await seedSample(backendRef.current, loader));
       }),
     [commit, enqueue, loader],
   );
+
+  const snapshot = useCallback(() => dataRef.current, []);
 
   const doErase = useCallback(
     () =>
@@ -162,10 +167,11 @@ export function StoreProvider({ children, backend: injected, loader = fetchDemoM
       save,
       addMedia,
       mediaUrl,
-      resetToDemo: doReset,
+      snapshot,
+      startSample,
       eraseEverything: doErase,
     }),
-    [ready, persistent, data, preview, save, addMedia, mediaUrl, doReset, doErase],
+    [ready, persistent, data, preview, save, addMedia, mediaUrl, snapshot, startSample, doErase],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

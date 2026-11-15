@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { MemoryBackend } from '../lib/db';
-import type { DemoMediaLoader } from '../lib/repo';
+import { seedSample, type DemoMediaLoader } from '../lib/repo';
 import { DEMO_MEDIA } from '../lib/seed';
 import { DEMO_PIN } from '../lib/session';
 
@@ -19,6 +19,7 @@ const loader: DemoMediaLoader = async (backend) => {
 async function renderApp() {
   const user = userEvent.setup();
   const backend = new MemoryBackend();
+  await seedSample(backend, loader);
   render(<App backend={backend} loader={loader} />);
   await screen.findByRole('heading', { name: 'Enter PIN' });
   return { user, backend };

@@ -1,10 +1,10 @@
 import type { AppData } from './types';
 
 /**
- * Fictional demo profile. Every person, place, and phone number here is made
+ * Fictional sample family. Every person, place, and phone number here is made
  * up. Phone numbers use the UK range reserved for drama (07700 900xxx).
  *
- * The demo profile ships as if a trusted helper had already completed setup,
+ * The sample family ships as if a trusted helper had already completed setup,
  * so a few fields are approved for the locked view. Any field added later
  * starts with its "Show before unlock" switch off, and "Erase everything"
  * returns to an empty locked preview.
@@ -33,6 +33,9 @@ export const DEMO_MEDIA: Record<string, { file: string; mime: string }> = {
   'demo-song-waltz': { file: 'song-waltz.wav', mime: 'audio/wav' },
   'demo-song-lullaby': { file: 'song-lullaby.wav', mime: 'audio/wav' },
 };
+
+/** The sample family's PIN. Shown on the keypad in sample mode only. */
+export const SAMPLE_PIN = '2580';
 
 export function demoAppData(): AppData {
   return {
@@ -254,5 +257,8 @@ export function demoAppData(): AppData {
       routineCue: true,
     },
     prefs: { textSize: 'standard', readAloud: true, callMode: 'demo', backgroundMusic: true },
+    // seedSample replaces personPin with a hash of SAMPLE_PIN.
+    security: { personPin: null, helperPin: null, lockEnabled: true },
+    setup: { mode: 'sample', wizardStep: null, lastBackupAt: null },
   };
 }

@@ -1,9 +1,9 @@
 /**
  * Record types for Familiar Place.
  *
- * Personal data (everything in AppData) lives in IndexedDB. The demo lock
- * session (DemoSession, see session.ts) lives only in memory and is never
- * written to storage.
+ * Personal data (everything in AppData) lives in IndexedDB. The lock session
+ * (LockSession, see session.ts) lives only in memory and is never written to
+ * storage.
  */
 
 export type MediaId = string;
@@ -184,6 +184,24 @@ export interface Prefs {
   backgroundMusic: boolean;
 }
 
+export interface Security {
+  /** Null when the in-app lock is off. */
+  personPin: PinHash | null;
+  /** Null only in 'new' mode before wizard step 1, and in 'sample' mode. */
+  helperPin: PinHash | null;
+  lockEnabled: boolean;
+}
+
+export type AppMode = 'new' | 'sample' | 'real';
+
+export interface SetupState {
+  mode: AppMode;
+  /** First-run step to resume at (1–6). Null once setup is finished. */
+  wizardStep: number | null;
+  /** When the last backup file was produced (ms since epoch). */
+  lastBackupAt: number | null;
+}
+
 export interface AppData {
   profile: Profile;
   home: Place;
@@ -194,6 +212,8 @@ export interface AppData {
   songs: Song[];
   approvals: Approvals;
   prefs: Prefs;
+  security: Security;
+  setup: SetupState;
 }
 
 export type TileId = 'home' | 'family' | 'you' | 'routine';

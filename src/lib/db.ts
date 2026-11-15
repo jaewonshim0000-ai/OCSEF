@@ -13,7 +13,7 @@ export const DB_VERSION = 2;
 export const COLLECTIONS = ['contacts', 'routines', 'memories', 'songs'] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 
-export const KV_KEYS = ['meta', 'profile', 'home', 'schedule', 'approvals', 'prefs'] as const;
+export const KV_KEYS = ['meta', 'profile', 'home', 'schedule', 'approvals', 'prefs', 'security', 'setup'] as const;
 export type KvKey = (typeof KV_KEYS)[number];
 
 export interface SliceWrite {

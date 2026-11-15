@@ -6,16 +6,19 @@ import {
   emptyPlace,
   emptyProfile,
   emptySchedule,
+  emptySecurity,
+  newSetup,
 } from './defaults';
-import { DEMO_MEDIA, demoAppData } from './seed';
-import type { AppData, Approvals, AudioRef, MediaId, PhotoRef } from './types';
+import { hashPin } from './pin';
+import { DEMO_MEDIA, SAMPLE_PIN, demoAppData } from './seed';
+import type { AppData, Approvals, AudioRef, MediaId, PhotoRef, Security, SetupState } from './types';
 
 interface Meta {
   seeded: boolean;
   version: number;
 }
 
-const META_VERSION = 1;
+const META_VERSION = 2;
 
 export type DemoMediaLoader = (backend: Backend) => Promise<Set<MediaId>>;
 
@@ -80,7 +83,9 @@ export function stripMissingMedia(data: AppData, available: Set<MediaId>): AppDa
 
 export type Slice = keyof AppData;
 const COLLECTION_SLICES: ReadonlySet<Slice> = new Set<Slice>(['contacts', 'routines', 'memories', 'songs']);
-export const ALL_SLICES: Slice[] = ['profile', 'home', 'contacts', 'schedule', 'routines', 'memories', 'songs', 'approvals', 'prefs'];
+export const ALL_SLICES: Slice[] = [
+  'profile', 'home', 'contacts', 'schedule', 'routines', 'memories', 'songs', 'approvals', 'prefs', 'security', 'setup',
+];
 
 export function writesFor(data: AppData, slices: Slice[]): SliceWrite {
   const writes: Required<SliceWrite> = { kv: {}, collections: {} };
@@ -101,53 +106,72 @@ function normaliseApprovals(stored: Partial<Approvals> | undefined): Approvals {
 
 const byOrder = <T extends { order: number }>(a: T, b: T) => a.order - b.order;
 
-async function writeAll(backend: Backend, data: AppData): Promise<void> {
+export async function writeAll(backend: Backend, data: AppData): Promise<void> {
   const writes = writesFor(data, ALL_SLICES);
   writes.kv = { ...writes.kv, meta: { seeded: true, version: META_VERSION } satisfies Meta };
   await backend.write(writes);
 }
 
-export async function seedDemo(backend: Backend, loader: DemoMediaLoader): Promise<AppData> {
+async function sampleSecurity(): Promise<Security> {
+  return { personPin: await hashPin(SAMPLE_PIN), helperPin: null, lockEnabled: true };
+}
+
+/** Deletes everything, then loads the fictional sample family. */
+export async function seedSample(backend: Backend, loader: DemoMediaLoader): Promise<AppData> {
+  await backend.clearAll();
   const available = await loader(backend);
-  const data = stripMissingMedia(demoAppData(), available);
+  const data: AppData = { ...stripMissingMedia(demoAppData(), available), security: await sampleSecurity() };
   await writeAll(backend, data);
   return data;
 }
 
-export async function loadAppData(backend: Backend, loader: DemoMediaLoader): Promise<AppData> {
+export async function loadAppData(backend: Backend): Promise<AppData> {
   const meta = await backend.getKV<Meta>('meta');
-  if (!meta?.seeded) return seedDemo(backend, loader);
+  if (!meta?.seeded) {
+    // A new install: start empty. The sample family loads only when asked for.
+    const data = emptyAppData();
+    await writeAll(backend, data);
+    return data;
+  }
 
-  const [profile, home, schedule, approvals, prefs, contacts, routines, memories, songs] = await Promise.all([
+  const [profile, home, schedule, approvals, prefs, security, setup, contacts, routines, memories, songs] = await Promise.all([
     backend.getKV<AppData['profile']>('profile'),
     backend.getKV<AppData['home']>('home'),
     backend.getKV<AppData['schedule']>('schedule'),
     backend.getKV<Approvals>('approvals'),
     backend.getKV<AppData['prefs']>('prefs'),
+    backend.getKV<Security>('security'),
+    backend.getKV<SetupState>('setup'),
     backend.getAll<AppData['contacts'][number]>('contacts'),
     backend.getAll<AppData['routines'][number]>('routines'),
     backend.getAll<AppData['memories'][number]>('memories'),
     backend.getAll<AppData['songs'][number]>('songs'),
   ]);
 
-  return {
+  const data: AppData = {
     profile: { ...emptyProfile(), ...profile },
     home: { ...emptyPlace(), ...home },
     schedule: { ...emptySchedule(), ...schedule },
     approvals: normaliseApprovals(approvals),
     prefs: { ...defaultPrefs(), ...prefs },
+    security: { ...emptySecurity(), ...security },
+    setup: { ...newSetup(), ...setup },
     // Contacts saved before voice messages existed have no voice field.
     contacts: contacts.map((c) => ({ ...c, voice: c.voice ?? null })).sort(byOrder),
     routines: [...routines].sort(byOrder),
     memories: [...memories].sort(byOrder),
     songs: [...songs].sort(byOrder),
   };
-}
 
-/** Deletes saved edits and media, then restores the fictional demo profile. */
-export async function resetToDemo(backend: Backend, loader: DemoMediaLoader): Promise<AppData> {
-  await backend.clearAll();
-  return seedDemo(backend, loader);
+  if (!setup) {
+    // Saved before Foundation, so this is the demo profile: open it as the sample family.
+    data.setup = { mode: 'sample', wizardStep: null, lastBackupAt: null };
+    data.security = await sampleSecurity();
+    const writes = writesFor(data, ['security', 'setup']);
+    writes.kv = { ...writes.kv, meta: { seeded: true, version: META_VERSION } satisfies Meta };
+    await backend.write(writes);
+  }
+  return data;
 }
 
 /** Deletes everything and starts with a blank profile and an empty locked preview. */

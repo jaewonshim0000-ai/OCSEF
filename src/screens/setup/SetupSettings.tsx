@@ -15,7 +15,7 @@ const SIZES: Array<{ id: TextSize; label: string }> = [
 ];
 
 export function SetupSettings() {
-  const { data, save, persistent, resetToDemo, eraseEverything } = useStore();
+  const { data, save, persistent, startSample, eraseEverything } = useStore();
   const [confirm, setConfirm] = useState<null | 'phone' | 'reset' | 'erase'>(null);
   const [message, setMessage] = useState<string | null>(null);
   const prefs = data.prefs;
@@ -137,7 +137,7 @@ export function SetupSettings() {
           onConfirm={async () => {
             setConfirm(null);
             try {
-              await resetToDemo();
+              await startSample();
               setMessage(null);
             } catch {
               setMessage("The reset didn't finish. Please try again.");
