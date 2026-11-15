@@ -5,9 +5,10 @@ import type { Flash } from '../../app/nav';
 import { Photo } from '../../components/Photo';
 import { AudioButton, ReadAloudButton } from '../../components/Sound';
 import { TileGrid } from '../../components/TileGrid';
-import { Button, Heading, LinkButton, Notice, Screen, Stack, TopBar } from '../../components/ui';
+import { Button, Heading, Notice, Screen, Stack, TopBar } from '../../components/ui';
 import type { LockedPhoto, LockedPreview } from '../../lib/preview';
 import type { TileId } from '../../lib/types';
+import { PhoneCallButton } from '../../components/PhoneCall';
 
 /**
  * Limited views shown while Familiar Place is locked.
@@ -191,9 +192,7 @@ function LockedFamily(props: LockedProps) {
       ) : null}
       {c.call ? (
         c.call.mode === 'phone' && !previewMode ? (
-          <LinkButton href={`tel:${c.call.phone.replace(/[^\d+]/g, '')}`} variant="call" icon={Phone}>
-            {callLabel(c.name)}
-          </LinkButton>
+          <PhoneCallButton phone={c.call.phone} label={callLabel(c.name)} />
         ) : (
           <button type="button" className="btn btn-call btn-xl btn-block btn-two-line" onClick={() => go('call')}>
             <Phone size={30} strokeWidth={2.5} aria-hidden />

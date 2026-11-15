@@ -326,8 +326,15 @@ export function AudioField({
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setError("The microphone isn't available. You can choose an audio file instead.");
+    } catch (e) {
+      const reason = e instanceof DOMException ? e.name : '';
+      setError(
+        reason === 'NotAllowedError'
+          ? "The microphone is blocked. Allow the microphone for this site in the browser's settings, then try again. You can also choose an audio file."
+          : reason === 'NotFoundError'
+            ? 'No microphone was found on this device. You can choose an audio file instead.'
+            : "The microphone isn't available. You can choose an audio file instead.",
+      );
       return;
     }
     let recorder: MediaRecorder;

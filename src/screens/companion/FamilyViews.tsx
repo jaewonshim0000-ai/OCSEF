@@ -1,9 +1,10 @@
 import { ChevronRight, Phone } from 'lucide-react';
 import { useNav } from '../../app/nav';
-import { backTarget, telHref, withFrom } from '../../app/paths';
+import { backTarget, withFrom } from '../../app/paths';
+import { PhoneCallButton } from '../../components/PhoneCall';
 import { Photo } from '../../components/Photo';
 import { AudioButton } from '../../components/Sound';
-import { Button, Heading, LinkButton, Notice, Screen, Stack, TopBar } from '../../components/ui';
+import { Button, Heading, Notice, Screen, Stack, TopBar } from '../../components/ui';
 import { useStore } from '../../lib/store';
 import type { Contact } from '../../lib/types';
 import { DemoCallView } from '../locked/LockedViews';
@@ -20,11 +21,7 @@ export function CallAction({ contact, size = 'xl' }: { contact: Contact; size?: 
   const label = `Call ${contact.name.trim() || 'this person'}`;
   if (!phone) return <p className="muted">No phone number saved.</p>;
   if (data.prefs.callMode === 'phone') {
-    return (
-      <LinkButton href={telHref(phone)} variant="call" icon={Phone}>
-        {label}
-      </LinkButton>
-    );
+    return <PhoneCallButton phone={phone} label={label} />;
   }
   return (
     <button

@@ -153,7 +153,8 @@ function ScreenSwitch() {
     case 'contact':
       return <ContactDetail />;
     case 'call':
-      return <DemoCall />;
+      // Only the sample family uses demo calls; real profiles go to the person's page.
+      return data.prefs.callMode === 'demo' ? <DemoCall /> : <ContactDetail />;
     case 'you':
       return <YouFull />;
     case 'routine':

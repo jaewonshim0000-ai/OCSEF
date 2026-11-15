@@ -629,6 +629,18 @@ describe('first run', () => {
     // A number typed without spaces is shown spaced, so it's easier to read.
     goToHash('/family');
     expect(screen.getByText('07700 900123')).toBeInTheDocument();
+
+    // Calling is real: the button hands the number to the phone's dialer, never a demo screen.
+    const [maya] = await backend.getAll<{ id: string }>('contacts');
+    goToHash(`/call/${maya.id}`);
+    expect(screen.queryByText(/This is a demo/)).not.toBeInTheDocument();
+    const call = screen.getByRole('link', { name: 'Call Maya' });
+    expect(call).toHaveAttribute('href', 'tel:07700900123');
+    // On a tablet or computer nothing may happen, so the number to dial is shown.
+    // (The test browser can't follow tel: links, so the navigation itself is skipped.)
+    call.addEventListener('click', (e) => e.preventDefault());
+    await user.click(call);
+    expect(screen.getByText(/If no call started, dial 07700 900123 from a phone/)).toBeInTheDocument();
   });
 
   it('opens the sample family from Welcome', async () => {
@@ -905,5 +917,25 @@ describe('person-facing empty screens', () => {
     // On Routine: "nothing planned" is said once, in Next up.
     expect(screen.getAllByText('Nothing is planned for today.')).toHaveLength(1);
     expect(screen.getByText('A helper can plan the day in Helper setup.')).toBeInTheDocument();
+  });
+});
+
+describe('recording', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'mediaDevices');
+    vi.unstubAllGlobals();
+  });
+
+  it('says how to allow the microphone when the browser blocks it', async () => {
+    const getUserMedia = vi.fn().mockRejectedValue(new DOMException('Permission denied', 'NotAllowedError'));
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia } });
+    vi.stubGlobal('MediaRecorder', class {});
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /About you/ }));
+    await user.click(screen.getByRole('button', { name: 'Record' }));
+    expect(await screen.findByText(/Allow the microphone for this site in the browser's settings/)).toBeInTheDocument();
   });
 });
