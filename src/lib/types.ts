@@ -27,6 +27,15 @@ export interface MediaRecord {
   createdAt: number;
 }
 
+/** A salted PBKDF2-SHA256 hash of a PIN. The PIN itself is never stored. */
+export interface PinHash {
+  /** base64, 16 random bytes */
+  salt: string;
+  /** base64, 32 bytes */
+  hash: string;
+  iterations: number;
+}
+
 export interface Profile {
   preferredName: string;
   photo: PhotoRef | null;
