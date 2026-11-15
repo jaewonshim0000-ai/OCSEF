@@ -1,3 +1,7 @@
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { isNative } from './native';
+import { toBase64 } from './pin';
 import type { AppData, MediaRecord } from './types';
 
 /**
@@ -170,7 +174,22 @@ export function backupFilename(date: Date = new Date()): string {
 }
 
 /** Hands the file to the browser as a download. Sub-project 2 replaces this on Android. */
-export function saveBackupFile(blob: Blob, filename: string): void {
+/**
+ * Hands the backup file over: a download in a browser, the share sheet in the
+ * Android app (whose WebView can't download). Resolves false if the person
+ * closed the share sheet without choosing where to keep it.
+ */
+export async function saveBackupFile(blob: Blob, filename: string): Promise<boolean> {
+  if (isNative()) {
+    // ponytail: base64 in memory; fine for backups up to tens of MB.
+    const { uri } = await Filesystem.writeFile({ path: filename, data: toBase64(await blobBytes(blob)), directory: Directory.Cache });
+    try {
+      await Share.share({ title: filename, files: [uri] });
+      return true;
+    } catch {
+      return false;
+    }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -180,6 +199,7 @@ export function saveBackupFile(blob: Blob, filename: string): void {
   a.click();
   a.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return true;
 }
 
 export function formatBytes(n: number): string {

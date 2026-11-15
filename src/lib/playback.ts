@@ -1,3 +1,5 @@
+import { cancelSpeech } from './speech';
+
 /**
  * Only one sound at a time: starting a recording, Read aloud or a microphone
  * recording stops whatever else was playing. Background music is not one of
@@ -49,7 +51,7 @@ export function stopAllPlayback(): void {
     current = null;
     stop();
   }
-  if (speechAvailable()) window.speechSynthesis.cancel();
+  cancelSpeech();
   announce();
 }
 
@@ -65,11 +67,4 @@ export function subscribeForeground(listener: Listener): () => void {
   };
 }
 
-export function speechAvailable(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    'speechSynthesis' in window &&
-    typeof window.speechSynthesis?.speak === 'function' &&
-    typeof window.SpeechSynthesisUtterance === 'function'
-  );
-}
+export { speechAvailable } from './speech';

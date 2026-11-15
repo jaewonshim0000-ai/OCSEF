@@ -1,3 +1,4 @@
+import { isNative } from './native';
 import type { MediaId, MediaRecord } from './types';
 
 /**
@@ -224,6 +225,8 @@ export async function openBackend(): Promise<Backend> {
 
 /** Asks the browser not to clear Familiar Place's data when space runs low. */
 export async function persistStorage(): Promise<boolean> {
+  // The Android app's storage is private to it and kept until uninstall.
+  if (isNative()) return true;
   try {
     return (await navigator.storage?.persist?.()) ?? false;
   } catch {
@@ -232,6 +235,7 @@ export async function persistStorage(): Promise<boolean> {
 }
 
 export async function isStoragePersisted(): Promise<boolean> {
+  if (isNative()) return true;
   try {
     return (await navigator.storage?.persisted?.()) ?? false;
   } catch {

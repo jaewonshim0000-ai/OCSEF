@@ -27,7 +27,11 @@ export function SaveBackupDialog({ onClose, onSaved }: { onClose: () => void; on
     setError(null);
     try {
       const blob = await createBackup(password);
-      saveBackupFile(blob, backupFilename());
+      if (!(await saveBackupFile(blob, backupFilename()))) {
+        // The share sheet was closed without saving: nothing to record.
+        setBusy(false);
+        return;
+      }
       const d = snapshot();
       await save({ setup: { ...d.setup, lastBackupAt: Date.now() } });
       onSaved();

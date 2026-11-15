@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Square, Volume2 } from 'lucide-react';
-import { claimPlayback, releasePlayback, speechAvailable } from '../lib/playback';
+import { claimPlayback, releasePlayback } from '../lib/playback';
+import { cancelSpeech, speak as speakText, speechAvailable } from '../lib/speech';
 import { useStore } from '../lib/store';
 import type { MediaId } from '../lib/types';
 import { useMediaUrl } from './Photo';
@@ -126,7 +127,7 @@ export function ReadAloudButton({
     if (tokenRef.current) {
       releasePlayback(tokenRef.current);
       tokenRef.current = null;
-      if (speechAvailable()) window.speechSynthesis.cancel();
+      cancelSpeech();
     }
     setSpeaking(false);
   }, []);
@@ -137,11 +138,7 @@ export function ReadAloudButton({
   if (!supported || !data.prefs.readAloud || !text.trim()) return null;
 
   const speak = () => {
-    const synth = window.speechSynthesis;
     tokenRef.current = claimPlayback(stop);
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
     const token = tokenRef.current;
     const finish = () => {
       if (tokenRef.current === token) {
@@ -150,10 +147,8 @@ export function ReadAloudButton({
         setSpeaking(false);
       }
     };
-    utterance.onend = finish;
-    utterance.onerror = finish;
     setSpeaking(true);
-    synth.speak(utterance);
+    speakText(text, finish);
   };
 
   return (
