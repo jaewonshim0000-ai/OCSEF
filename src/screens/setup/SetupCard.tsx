@@ -25,7 +25,13 @@ export function SetupCard() {
       dirty={dirty}
       previewSource={{ ...data, approvals }}
       onSave={async () => {
-        const helpCard = { ...draft, message: draft.message.trim() };
+        // A switch for something missing is saved as off, so a value added later isn't shared by surprise.
+        const helpCard = {
+          message: draft.message.trim(),
+          name: draft.name && !!name,
+          contact: draft.contact && !!who,
+          address: draft.address && !!address,
+        };
         await save({ approvals: { ...data.approvals, helpCard } });
         markSaved(helpCard);
       }}

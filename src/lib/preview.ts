@@ -146,6 +146,7 @@ export function isPreviewEmpty(p: LockedPreview): boolean {
     !p.you.voice &&
     !p.routineCue &&
     !p.note &&
+    p.helpCard.message === DEFAULT_HELP_MESSAGE &&
     !p.helpCard.name &&
     !p.helpCard.contact &&
     !p.helpCard.address

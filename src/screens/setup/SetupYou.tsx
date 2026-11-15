@@ -19,6 +19,8 @@ export function mergeYouApprovals(base: Approvals, d: Draft): Approvals {
     youName: d.youName && !!d.profile.preferredName.trim(),
     youPhoto: d.youPhoto && !!d.profile.photo,
     youVoice: d.youVoice && !!d.profile.voice,
+    // Clearing the name turns the help card's name off, so a new name isn't shared by surprise.
+    helpCard: { ...base.helpCard, name: base.helpCard.name && !!d.profile.preferredName.trim() },
   };
 }
 

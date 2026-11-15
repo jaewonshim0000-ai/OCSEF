@@ -20,7 +20,13 @@ interface Draft {
 }
 
 export function mergeHomeApprovals(base: Approvals, d: Draft): Approvals {
-  return { ...base, homePhoto: d.homePhoto && !!d.home.photo, homeCue: d.homeCue && !!d.home.cue.trim() };
+  return {
+    ...base,
+    homePhoto: d.homePhoto && !!d.home.photo,
+    homeCue: d.homeCue && !!d.home.cue.trim(),
+    // Clearing the address turns the help card's address off, so a new address isn't shared by surprise.
+    helpCard: { ...base.helpCard, address: base.helpCard.address && !!d.home.address.trim() },
+  };
 }
 
 export function SetupHome() {
@@ -89,11 +95,11 @@ export function SetupHome() {
         />
       </Card>
 
-      <SectionTitle>Only after unlock</SectionTitle>
+      <SectionTitle>Private until unlock</SectionTitle>
       <Card>
         <TextArea label="Full address" value={h.address} onChange={(v) => setHome({ address: v })} rows={2} maxLength={200} />
         <Notice tone="private" icon={Lock}>
-          The address is never shown before unlock.
+          The address can show before unlock only on the help card, and only if you turn on Home address there.
         </Notice>
         <ListField
           label="Landmarks near home"

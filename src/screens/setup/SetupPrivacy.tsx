@@ -7,6 +7,7 @@ import { isPreviewEmpty } from '../../lib/preview';
 import { useStore } from '../../lib/store';
 import type { Approvals } from '../../lib/types';
 import { SetupPage } from './common';
+import { DEFAULT_HELP_MESSAGE } from '../../lib/preview';
 
 /**
  * Everything currently shown before unlock, each with its own "Stop showing"
@@ -106,6 +107,9 @@ export function SetupPrivacy() {
       </Group>
 
       <Group title="Help card" Icon={IdCard}>
+        {p.helpCard.message !== DEFAULT_HELP_MESSAGE ? (
+          <Item label="Help card: your message" onStop={() => revoke('Help card: your message', (x) => ({ ...x, helpCard: { ...x.helpCard, message: '' } }))} />
+        ) : null}
         {p.helpCard.name ? (
           <Item label="Help card: their name" onStop={() => revoke('Help card: their name', (x) => ({ ...x, helpCard: { ...x.helpCard, name: false } }))} />
         ) : null}
@@ -118,7 +122,7 @@ export function SetupPrivacy() {
         {p.helpCard.address ? (
           <Item label="Help card: home address" onStop={() => revoke('Help card: home address', (x) => ({ ...x, helpCard: { ...x.helpCard, address: false } }))} />
         ) : null}
-        {!p.helpCard.name && !p.helpCard.contact && !p.helpCard.address ? <Empty /> : null}
+        {p.helpCard.message === DEFAULT_HELP_MESSAGE && !p.helpCard.name && !p.helpCard.contact && !p.helpCard.address ? <Empty /> : null}
       </Group>
 
       <p className="field-hint">To add something, open that section and turn on its “Show before unlock” switch.</p>
@@ -137,8 +141,7 @@ export function SetupPrivacy() {
           onCancel={() => setConfirmAll(false)}
           onConfirm={() => {
             setConfirmAll(false);
-            // The card's message isn't shown on its own, so keep what the helper wrote.
-            revoke('Everything', (x) => ({ ...emptyApprovals(), helpCard: { ...emptyApprovals().helpCard, message: x.helpCard.message } }));
+            revoke('Everything', () => emptyApprovals());
           }}
         />
       ) : null}

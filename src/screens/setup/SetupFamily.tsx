@@ -290,8 +290,11 @@ export function SetupContact({ contactId }: { contactId: string }) {
           onCancel={() => setConfirmRemove(false)}
           onConfirm={async () => {
             setConfirmRemove(false);
-            const approvals = data.approvals.contact.id === c.id ? { ...data.approvals, contact: emptyApprovals().contact } : data.approvals;
-            await save({ contacts: data.contacts.filter((x) => x.id !== c.id), approvals });
+            const remaining = data.contacts.filter((x) => x.id !== c.id);
+            let approvals = data.approvals.contact.id === c.id ? { ...data.approvals, contact: emptyApprovals().contact } : data.approvals;
+            // With nobody left to call, the help card's "Who to call" turns off, so a new person isn't shared by surprise.
+            if (!remaining.length) approvals = { ...approvals, helpCard: { ...approvals.helpCard, contact: false } };
+            await save({ contacts: remaining, approvals });
             markSaved(draft);
             navigate('/setup/family', { replace: true });
           }}

@@ -1193,7 +1193,7 @@ describe('"Help me tell someone" card', () => {
     expect(screen.getByText('Please call Maya.')).toBeInTheDocument();
   });
 
-  it('keeps the card message when everything is stopped from showing', async () => {
+  it('Stop showing everything also clears the card message', async () => {
     const { user, backend } = await unlockToSetup();
     await user.click(screen.getByRole('button', { name: /^Help card/ }));
     await user.type(screen.getByLabelText('Message'), 'Please help me find Maya.');
@@ -1204,11 +1204,55 @@ describe('"Help me tell someone" card', () => {
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Stop showing everything' }));
     await waitFor(async () =>
       expect((await backend.getKV<{ helpCard: { message: string; name: boolean } }>('approvals'))?.helpCard).toEqual({
-        message: 'Please help me find Maya.',
+        message: '',
         name: false,
         contact: false,
         address: false,
       }),
     );
+  });
+});
+
+describe('help card privacy (review fixes)', () => {
+  async function saveAndWait(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+  }
+
+  it("turns a card item off when its value is cleared, so a new value isn't shared", async () => {
+    const { user } = await unlockToSetup();
+    await user.click(screen.getByRole('button', { name: /^Help card/ }));
+    await user.click(screen.getByRole('switch', { name: 'Home address' }));
+    await saveAndWait(user);
+    goToHash('/setup/home');
+    await user.clear(screen.getByLabelText('Full address'));
+    await saveAndWait(user);
+    await user.type(screen.getByLabelText('Full address'), '3 Oak Road');
+    await saveAndWait(user);
+    goToHash('/card');
+    expect(screen.getByRole('heading', { name: 'Please read this' })).toBeInTheDocument();
+    expect(screen.queryByText(/I live at/)).not.toBeInTheDocument();
+  });
+
+  it('the Home page no longer promises the address never shows before unlock', async () => {
+    const { user } = await unlockToSetup();
+    await user.click(screen.getByRole('button', { name: /^Home/ }));
+    expect(screen.queryByText(/never shown before unlock/)).not.toBeInTheDocument();
+    expect(screen.getByText(/only on the help card/)).toBeInTheDocument();
+  });
+
+  it('lists a custom card message on the Before unlock page', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /^Help card/ }));
+    await user.type(screen.getByLabelText('Message'), 'Call Maya on 07700 900123');
+    await saveAndWait(user);
+    goToHash('/setup/privacy');
+    expect(screen.getByText('Help card: your message')).toBeInTheDocument();
+    expect(screen.queryByText(/Nothing is shown before unlock/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Stop showing: Help card: your message' }));
+    await waitFor(() => expect(screen.getByText(/Nothing is shown before unlock/)).toBeInTheDocument());
   });
 });

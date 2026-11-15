@@ -3,7 +3,7 @@ import { CalendarClock, ChevronRight, Eye, House, IdCard, Images, Music, Setting
 import { useNav } from '../../app/nav';
 import { Button, Notice } from '../../components/ui';
 import { useStore } from '../../lib/store';
-import { isPreviewEmpty } from '../../lib/preview';
+import { DEFAULT_HELP_MESSAGE, isPreviewEmpty } from '../../lib/preview';
 import { LockedPreviewModal, SetupPage } from './common';
 
 export function SetupHub() {
@@ -84,6 +84,7 @@ function countShown(p: ReturnType<typeof useStore>['preview']): number {
   if (p.you.voice) n++;
   if (p.routineCue) n++;
   if (p.note) n++;
+  if (p.helpCard.message !== DEFAULT_HELP_MESSAGE) n++;
   if (p.helpCard.name) n++;
   if (p.helpCard.contact) n++;
   if (p.helpCard.address) n++;
