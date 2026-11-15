@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <rect width="600" height="450" fill="#EFE6D8"/>
+  <!-- hall table -->
+  <rect x="60" y="270" width="480" height="26" rx="6" fill="#8B6B4E"/>
+  <rect x="90" y="296" width="20" height="154" fill="#6F5440"/>
+  <rect x="490" y="296" width="20" height="154" fill="#6F5440"/>
+  <!-- blue bowl -->
+  <path d="M190 210 H410 Q404 272 300 272 Q196 272 190 210 Z" fill="#2A6FC0"/>
+  <ellipse cx="300" cy="210" rx="110" ry="18" fill="#1F5FAD"/>
+  <path d="M206 228 Q300 244 394 228" fill="none" stroke="#5E97D8" stroke-width="5" stroke-linecap="round"/>
+  <!-- keys -->
+  <g>
+    <circle cx="300" cy="196" r="18" fill="none" stroke="#C7CCD1" stroke-width="6"/>
+    <path d="M300 180 L262 150 L254 160 L244 152 L238 160" fill="none" stroke="#D4A62A" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="262" cy="150" r="1" fill="#D4A62A"/>
+    <path d="M314 186 L352 156 L358 166 L368 160" fill="none" stroke="#B9C2CA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="300" cy="214" r="14" fill="#E0262B"/>
+  </g>
+  <!-- photo frame on table -->
+  <rect x="430" y="180" width="70" height="90" rx="4" fill="#D4A62A"/>
+  <rect x="440" y="190" width="50" height="70" fill="#CFE3F5"/>
+  <circle cx="465" cy="215" r="12" fill="#B97B58"/>
+  <path d="M446 260 Q465 230 484 260 Z" fill="#F2B705"/>
+</svg>

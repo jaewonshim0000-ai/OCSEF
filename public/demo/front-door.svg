@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <!-- brick wall -->
+  <rect width="600" height="450" fill="#B5654A"/>
+  <g stroke="#9A513A" stroke-width="3">
+    <path d="M0 40 H600 M0 80 H600 M0 120 H600 M0 160 H600 M0 200 H600 M0 240 H600 M0 280 H600 M0 320 H600 M0 360 H600"/>
+  </g>
+  <!-- step -->
+  <rect x="150" y="400" width="300" height="50" fill="#9AA0A6"/>
+  <rect x="170" y="388" width="260" height="16" fill="#B9BEC3"/>
+  <!-- door frame -->
+  <rect x="190" y="60" width="220" height="330" fill="#F4F1EA"/>
+  <!-- fanlight -->
+  <path d="M205 120 A95 50 0 0 1 395 120 Z" fill="#CFE6F2" stroke="#F4F1EA" stroke-width="4"/>
+  <path d="M300 72 V120 M250 82 L270 120 M350 82 L330 120" stroke="#F4F1EA" stroke-width="4"/>
+  <!-- blue door -->
+  <rect x="210" y="128" width="180" height="262" fill="#1F5FAD"/>
+  <rect x="228" y="146" width="62" height="100" rx="4" fill="#1A4F90"/>
+  <rect x="310" y="146" width="62" height="100" rx="4" fill="#1A4F90"/>
+  <rect x="228" y="266" width="62" height="104" rx="4" fill="#1A4F90"/>
+  <rect x="310" y="266" width="62" height="104" rx="4" fill="#1A4F90"/>
+  <!-- brass knocker, letterbox, handle -->
+  <circle cx="300" cy="196" r="16" fill="none" stroke="#D4A62A" stroke-width="6"/>
+  <rect x="294" y="172" width="12" height="10" fill="#D4A62A"/>
+  <rect x="276" y="226" width="48" height="12" rx="3" fill="#D4A62A"/>
+  <circle cx="370" cy="270" r="8" fill="#D4A62A"/>
+  <!-- geranium pots -->
+  <g>
+    <path d="M90 330 H170 L160 400 H100 Z" fill="#C0582F"/>
+    <rect x="84" y="320" width="92" height="16" rx="4" fill="#A9481F"/>
+    <g fill="#2F7A3A"><circle cx="110" cy="300" r="22"/><circle cx="150" cy="300" r="22"/><circle cx="130" cy="285" r="22"/></g>
+    <g fill="#E0262B"><circle cx="108" cy="282" r="12"/><circle cx="148" cy="278" r="12"/><circle cx="130" cy="262" r="13"/></g>
+  </g>
+  <g>
+    <path d="M430 330 H510 L500 400 H440 Z" fill="#C0582F"/>
+    <rect x="424" y="320" width="92" height="16" rx="4" fill="#A9481F"/>
+    <g fill="#2F7A3A"><circle cx="450" cy="300" r="22"/><circle cx="490" cy="300" r="22"/><circle cx="470" cy="285" r="22"/></g>
+    <g fill="#E0262B"><circle cx="448" cy="282" r="12"/><circle cx="488" cy="278" r="12"/><circle cx="470" cy="262" r="13"/></g>
+  </g>
+</svg>

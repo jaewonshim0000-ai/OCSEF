@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#CFE3F5"/>
+  <circle cx="72" cy="78" r="30" fill="#E6F0FA"/>
+  <!-- shirt -->
+  <path d="M70 400 C80 320 130 300 200 300 C270 300 320 320 330 400 Z" fill="#2F5D8C"/>
+  <path d="M175 300 L200 340 L225 300" fill="#E9EEF4"/>
+  <!-- neck -->
+  <rect x="178" y="250" width="44" height="58" rx="18" fill="#E0B08F"/>
+  <!-- ears -->
+  <ellipse cx="136" cy="205" rx="12" ry="18" fill="#E0B08F"/>
+  <ellipse cx="264" cy="205" rx="12" ry="18" fill="#E0B08F"/>
+  <!-- face -->
+  <ellipse cx="200" cy="198" rx="64" ry="76" fill="#EBC09F"/>
+  <!-- short hair -->
+  <path d="M136 186 C130 120 170 104 204 106 C246 108 272 130 266 186 C258 160 240 146 204 146 C170 146 146 158 136 186 Z" fill="#7A4A26"/>
+  <!-- beard shadow -->
+  <path d="M146 228 Q200 300 254 228 Q240 270 200 274 Q160 270 146 228 Z" fill="#9C6B45" opacity="0.55"/>
+  <!-- eyes -->
+  <ellipse cx="177" cy="198" rx="7" ry="8" fill="#1F2A36"/>
+  <ellipse cx="223" cy="198" rx="7" ry="8" fill="#1F2A36"/>
+  <path d="M162 180 L190 178" stroke="#5A3418" stroke-width="6" stroke-linecap="round"/>
+  <path d="M210 178 L238 180" stroke="#5A3418" stroke-width="6" stroke-linecap="round"/>
+  <!-- smile -->
+  <path d="M178 238 Q200 254 222 238" fill="none" stroke="#7A3B2A" stroke-width="5" stroke-linecap="round"/>
+</svg>

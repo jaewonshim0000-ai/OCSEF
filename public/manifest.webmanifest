@@ -1,0 +1,10 @@
+{
+  "name": "Familiar Place",
+  "short_name": "Familiar Place",
+  "description": "Get your bearings and reach someone you trust.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF8F3",
+  "theme_color": "#14213d",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

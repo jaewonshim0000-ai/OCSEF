@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- wall and floor -->
+  <rect width="800" height="400" fill="#F5EBDD"/>
+  <rect y="360" width="800" height="40" fill="#C9A67A"/>
+  <path d="M0 360 H800" stroke="#A9865C" stroke-width="3"/>
+  <!-- tiles behind counter -->
+  <g fill="#FFFFFF" opacity="0.55">
+    <rect x="20" y="180" width="680" height="48"/>
+  </g>
+  <!-- upper left cupboards (blue mug lives here) -->
+  <rect x="40" y="40" width="220" height="130" rx="6" fill="#6E9A7E"/>
+  <rect x="50" y="50" width="96" height="110" rx="4" fill="#80AC90"/>
+  <rect x="154" y="50" width="96" height="110" rx="4" fill="#80AC90"/>
+  <rect x="132" y="96" width="6" height="22" rx="3" fill="#3E5A47"/>
+  <rect x="162" y="96" width="6" height="22" rx="3" fill="#3E5A47"/>
+  <!-- window over sink -->
+  <rect x="296" y="36" width="208" height="158" fill="#FFFFFF"/>
+  <rect x="308" y="48" width="184" height="134" fill="#BFE0F2"/>
+  <path d="M400 48 V182 M308 115 H492" stroke="#FFFFFF" stroke-width="6"/>
+  <circle cx="452" cy="82" r="18" fill="#FFF3B0"/>
+  <path d="M296 36 Q330 110 300 194 L290 194 L290 30 Z" fill="#E7A9A0"/>
+  <path d="M504 36 Q470 110 500 194 L510 194 L510 30 Z" fill="#E7A9A0"/>
+  <rect x="290" y="190" width="220" height="8" fill="#E6DCCB"/>
+  <!-- plant on sill -->
+  <path d="M332 190 h30 l-4 -22 h-22 z" fill="#C0582F"/>
+  <g fill="#3F8A4C"><ellipse cx="340" cy="158" rx="8" ry="16"/><ellipse cx="354" cy="156" rx="8" ry="17"/></g>
+  <!-- upper right cupboard -->
+  <rect x="540" y="40" width="160" height="120" rx="6" fill="#6E9A7E"/>
+  <rect x="550" y="50" width="66" height="100" rx="4" fill="#80AC90"/>
+  <rect x="624" y="50" width="66" height="100" rx="4" fill="#80AC90"/>
+  <rect x="604" y="92" width="6" height="20" rx="3" fill="#3E5A47"/>
+  <rect x="630" y="92" width="6" height="20" rx="3" fill="#3E5A47"/>
+  <!-- kettle -->
+  <path d="M524 228 L530 186 Q550 172 570 186 L576 228 Z" fill="#D9DEE3" stroke="#8A939C" stroke-width="3"/>
+  <path d="M572 196 Q594 198 590 216" fill="none" stroke="#8A939C" stroke-width="6" stroke-linecap="round"/>
+  <path d="M528 196 L512 188" stroke="#8A939C" stroke-width="6" stroke-linecap="round"/>
+  <rect x="540" y="176" width="20" height="8" rx="3" fill="#2F343A"/>
+  <!-- tea tin -->
+  <rect x="602" y="194" width="38" height="34" rx="6" fill="#B8322A"/>
+  <rect x="602" y="190" width="38" height="8" rx="3" fill="#8F231D"/>
+  <text x="621" y="217" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#FFF3D6" text-anchor="middle">TEA</text>
+  <!-- counter -->
+  <rect x="20" y="228" width="686" height="18" fill="#8B6B4E"/>
+  <!-- sink and tap -->
+  <rect x="340" y="226" width="120" height="8" rx="3" fill="#A7AFB7"/>
+  <path d="M400 226 V206 Q400 198 410 198 H420" fill="none" stroke="#A7AFB7" stroke-width="6" stroke-linecap="round"/>
+  <!-- base cabinets -->
+  <rect x="20" y="246" width="686" height="114" fill="#6E9A7E"/>
+  <g fill="#80AC90">
+    <rect x="30" y="254" width="150" height="34" rx="4"/>
+    <rect x="190" y="254" width="150" height="34" rx="4"/>
+    <rect x="350" y="254" width="140" height="34" rx="4"/>
+    <rect x="500" y="254" width="120" height="34" rx="4"/>
+    <rect x="630" y="254" width="68" height="34" rx="4"/>
+    <rect x="30" y="296" width="150" height="56" rx="4"/>
+    <rect x="190" y="296" width="150" height="56" rx="4"/>
+    <rect x="350" y="296" width="140" height="56" rx="4"/>
+    <rect x="500" y="296" width="120" height="56" rx="4"/>
+    <rect x="630" y="296" width="68" height="56" rx="4"/>
+  </g>
+  <g fill="#3E5A47">
+    <rect x="90" y="268" width="30" height="6" rx="3"/>
+    <rect x="250" y="268" width="30" height="6" rx="3"/>
+    <rect x="405" y="268" width="30" height="6" rx="3"/>
+    <rect x="545" y="268" width="30" height="6" rx="3"/>
+    <rect x="650" y="268" width="28" height="6" rx="3"/>
+  </g>
+  <!-- fridge -->
+  <rect x="712" y="48" width="80" height="312" rx="8" fill="#E8EDF1" stroke="#B9C2CA" stroke-width="3"/>
+  <path d="M712 150 H792" stroke="#B9C2CA" stroke-width="3"/>
+  <rect x="722" y="90" width="6" height="40" rx="3" fill="#9AA4AE"/>
+  <rect x="722" y="170" width="6" height="60" rx="3" fill="#9AA4AE"/>
+  <circle cx="760" cy="100" r="8" fill="#F2B705"/>
+  <rect x="748" y="110" width="26" height="18" rx="2" fill="#FFFFFF" stroke="#D0D6DC"/>
+</svg>

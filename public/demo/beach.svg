@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <rect width="600" height="230" fill="#9FD3F0"/>
+  <circle cx="490" cy="80" r="44" fill="#FFE27A"/>
+  <path d="M60 70 q20 -14 40 0 q20 -14 40 0" fill="none" stroke="#5F7C8C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M300 50 q14 -10 28 0 q14 -10 28 0" fill="none" stroke="#5F7C8C" stroke-width="5" stroke-linecap="round"/>
+  <!-- sea -->
+  <rect y="190" width="600" height="80" fill="#3C8DBC"/>
+  <path d="M0 200 q30 -10 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0" fill="none" stroke="#BFE3F5" stroke-width="5"/>
+  <!-- sand -->
+  <path d="M0 250 Q300 225 600 250 V450 H0 Z" fill="#EBD3A0"/>
+  <!-- striped windbreak -->
+  <g>
+    <rect x="40" y="250" width="200" height="90" fill="#FFFFFF"/>
+    <rect x="40" y="250" width="40" height="90" fill="#E0412B"/>
+    <rect x="120" y="250" width="40" height="90" fill="#E0412B"/>
+    <rect x="200" y="250" width="40" height="90" fill="#E0412B"/>
+    <g stroke="#7A5A3A" stroke-width="6"><path d="M40 245 V350 M120 245 V350 M200 245 V350 M240 245 V350"/></g>
+  </g>
+  <!-- sandcastle -->
+  <g fill="#D9B46E">
+    <rect x="340" y="320" width="120" height="60"/>
+    <rect x="330" y="290" width="36" height="40"/><rect x="434" y="290" width="36" height="40"/>
+    <rect x="378" y="275" width="44" height="50"/>
+  </g>
+  <g fill="#C79D55"><rect x="330" y="282" width="10" height="10"/><rect x="348" y="282" width="10" height="10"/><rect x="434" y="282" width="10" height="10"/><rect x="452" y="282" width="10" height="10"/></g>
+  <path d="M400 275 V240" stroke="#7A5A3A" stroke-width="4"/>
+  <path d="M400 240 L428 250 L400 260 Z" fill="#E0412B"/>
+  <!-- two children -->
+  <g>
+    <circle cx="300" cy="300" r="18" fill="#E8B48F"/>
+    <path d="M282 296 Q300 270 318 296 Z" fill="#3A2416"/>
+    <path d="M280 360 Q300 318 320 360 Z" fill="#F2B705"/>
+  </g>
+  <g>
+    <circle cx="520" cy="310" r="16" fill="#E8B48F"/>
+    <path d="M504 306 Q520 284 536 306 Z" fill="#7A4A26"/>
+    <path d="M502 366 Q520 326 538 366 Z" fill="#2F5D8C"/>
+  </g>
+  <!-- bucket and spade -->
+  <path d="M250 380 h36 l-5 40 h-26 z" fill="#2F7A4A"/>
+  <path d="M250 380 q18 -24 36 0" fill="none" stroke="#2F7A4A" stroke-width="4"/>
+  <path d="M480 420 L500 370" stroke="#7A5A3A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M492 360 l18 6 -8 16 -16 -6 z" fill="#B9C2CA"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <rect width="600" height="450" fill="#EFE6D8"/>
+  <!-- coat rail -->
+  <rect x="120" y="50" width="360" height="22" rx="6" fill="#8B6B4E"/>
+  <circle cx="300" cy="74" r="10" fill="#D4A62A"/>
+  <!-- green raincoat -->
+  <path d="M300 80 L250 104 C200 120 180 150 172 200 L150 400 H240 L246 260 L254 400 H346 L354 260 L360 400 H450 L428 200 C420 150 400 120 350 104 Z" fill="#2F7A4A"/>
+  <path d="M300 80 L270 104 L300 160 L330 104 Z" fill="#245F39"/>
+  <path d="M300 160 V400" stroke="#245F39" stroke-width="5"/>
+  <g fill="#F4E7C2">
+    <circle cx="318" cy="200" r="7"/><circle cx="318" cy="250" r="7"/><circle cx="318" cy="300" r="7"/><circle cx="318" cy="350" r="7"/>
+  </g>
+  <rect x="200" y="290" width="60" height="10" rx="4" fill="#245F39"/>
+  <rect x="340" y="290" width="60" height="10" rx="4" fill="#245F39"/>
+  <!-- hood -->
+  <path d="M262 98 Q300 60 338 98" fill="none" stroke="#245F39" stroke-width="10" stroke-linecap="round"/>
+  <!-- door edge on the right -->
+  <rect x="520" y="0" width="80" height="450" fill="#1F5FAD"/>
+  <circle cx="536" cy="250" r="7" fill="#D4A62A"/>
+</svg>

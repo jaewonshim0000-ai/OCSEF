@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#D8EDDC"/>
+  <circle cx="328" cy="80" r="34" fill="#EAF6EC"/>
+  <!-- cardigan -->
+  <path d="M70 400 C80 322 130 302 200 302 C270 302 320 322 330 400 Z" fill="#8E4A6B"/>
+  <path d="M185 304 L200 400 L215 304 Z" fill="#F4E9EE"/>
+  <circle cx="200" cy="350" r="5" fill="#5E2E46"/><circle cx="200" cy="378" r="5" fill="#5E2E46"/>
+  <!-- neck -->
+  <rect x="180" y="252" width="40" height="56" rx="18" fill="#E8BFA2"/>
+  <!-- grey hair back -->
+  <path d="M126 210 C112 120 168 92 204 94 C248 96 292 124 276 210 C272 250 254 262 248 262 L152 262 C146 262 130 250 126 210 Z" fill="#C9CCD1"/>
+  <!-- face -->
+  <ellipse cx="200" cy="200" rx="62" ry="74" fill="#F1CBAE"/>
+  <!-- soft fringe -->
+  <path d="M138 180 C140 130 176 118 204 120 C236 122 262 140 262 180 C246 150 220 142 196 146 C170 150 150 160 138 180 Z" fill="#D7DADF"/>
+  <!-- round glasses -->
+  <g fill="none" stroke="#3B3B46" stroke-width="5">
+    <circle cx="176" cy="202" r="19"/>
+    <circle cx="224" cy="202" r="19"/>
+    <path d="M195 202 Q200 196 205 202"/>
+  </g>
+  <circle cx="176" cy="203" r="6" fill="#2A2A33"/>
+  <circle cx="224" cy="203" r="6" fill="#2A2A33"/>
+  <!-- cheeks and smile -->
+  <circle cx="158" cy="234" r="10" fill="#E39C8A" opacity="0.6"/>
+  <circle cx="242" cy="234" r="10" fill="#E39C8A" opacity="0.6"/>
+  <path d="M178 240 Q200 260 222 240" fill="none" stroke="#9A4B3E" stroke-width="5" stroke-linecap="round"/>
+  <!-- pearl necklace -->
+  <g fill="#FFFFFF" stroke="#D9D2C9" stroke-width="1.5">
+    <circle cx="170" cy="300" r="6"/><circle cx="185" cy="308" r="6"/><circle cx="200" cy="311" r="6"/><circle cx="215" cy="308" r="6"/><circle cx="230" cy="300" r="6"/>
+  </g>
+</svg>

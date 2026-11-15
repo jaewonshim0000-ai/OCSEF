@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <rect width="600" height="450" fill="#F5EBDD"/>
+  <!-- window -->
+  <rect x="90" y="40" width="420" height="270" fill="#FFFFFF"/>
+  <rect x="106" y="56" width="388" height="238" fill="#BFE0F2"/>
+  <path d="M300 56 V294" stroke="#FFFFFF" stroke-width="10"/>
+  <circle cx="420" cy="120" r="34" fill="#FFE27A"/>
+  <path d="M106 250 Q200 200 300 240 T494 230 V294 H106 Z" fill="#8CC48A"/>
+  <!-- sunbeam -->
+  <path d="M150 310 L420 310 L520 450 L60 450 Z" fill="#FFF3B0" opacity="0.6"/>
+  <!-- sill -->
+  <rect x="70" y="300" width="460" height="26" rx="4" fill="#E6DCCB"/>
+  <!-- ginger cat curled up -->
+  <g transform="translate(300 280)">
+    <ellipse cx="0" cy="0" rx="120" ry="52" fill="#E08A3C"/>
+    <path d="M-110 10 Q-150 -10 -120 -40 Q-100 -54 -80 -30" fill="none" stroke="#E08A3C" stroke-width="22" stroke-linecap="round"/>
+    <g stroke="#B9652A" stroke-width="7" stroke-linecap="round">
+      <path d="M-40 -46 Q-30 -20 -44 6"/><path d="M0 -50 Q10 -24 -4 6"/><path d="M40 -46 Q50 -20 36 6"/>
+    </g>
+    <!-- head -->
+    <circle cx="86" cy="-14" r="44" fill="#E08A3C"/>
+    <path d="M56 -46 L62 -84 L86 -56 Z" fill="#E08A3C"/>
+    <path d="M100 -56 L122 -82 L124 -42 Z" fill="#E08A3C"/>
+    <path d="M64 -54 L66 -72 L80 -58 Z" fill="#F4B08A"/>
+    <path d="M106 -56 L118 -72 L118 -50 Z" fill="#F4B08A"/>
+    <!-- closed sleepy eyes -->
+    <path d="M66 -18 Q74 -10 82 -18" fill="none" stroke="#5A2E10" stroke-width="4" stroke-linecap="round"/>
+    <path d="M96 -18 Q104 -10 112 -18" fill="none" stroke="#5A2E10" stroke-width="4" stroke-linecap="round"/>
+    <path d="M86 -4 l-6 -6 h12 z" fill="#C2566A"/>
+    <path d="M86 -2 q-6 8 -12 4 M86 -2 q6 8 12 4" fill="none" stroke="#5A2E10" stroke-width="3" stroke-linecap="round"/>
+    <g stroke="#5A2E10" stroke-width="2"><path d="M60 -4 H38 M60 2 H40 M112 -4 H134 M112 2 H132"/></g>
+  </g>
+  <!-- little z's -->
+  <text x="430" y="200" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#5F7C8C">z</text>
+  <text x="456" y="176" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#5F7C8C">z</text>
+</svg>

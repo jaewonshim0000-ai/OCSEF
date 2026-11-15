@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <rect width="600" height="450" fill="#CFE8F5"/>
+  <circle cx="90" cy="80" r="40" fill="#FFF1A8"/>
+  <!-- fence -->
+  <g fill="#B58B5E">
+    <rect x="0" y="170" width="600" height="16"/>
+    <rect x="0" y="250" width="600" height="16"/>
+  </g>
+  <g fill="#C99D6C">
+    <path d="M20 140 l20 -18 20 18 v190 h-40z"/><path d="M90 140 l20 -18 20 18 v190 h-40z"/>
+    <path d="M160 140 l20 -18 20 18 v190 h-40z"/><path d="M230 140 l20 -18 20 18 v190 h-40z"/>
+    <path d="M300 140 l20 -18 20 18 v190 h-40z"/><path d="M370 140 l20 -18 20 18 v190 h-40z"/>
+    <path d="M440 140 l20 -18 20 18 v190 h-40z"/><path d="M510 140 l20 -18 20 18 v190 h-40z"/>
+  </g>
+  <!-- lawn -->
+  <rect y="320" width="600" height="130" fill="#6DB36B"/>
+  <!-- rose bushes -->
+  <g fill="#2F7A3A">
+    <ellipse cx="110" cy="300" rx="90" ry="60"/><ellipse cx="300" cy="290" rx="100" ry="66"/><ellipse cx="490" cy="300" rx="90" ry="60"/>
+  </g>
+  <g fill="#F28BB3">
+    <circle cx="70" cy="280" r="16"/><circle cx="120" cy="256" r="16"/><circle cx="160" cy="290" r="16"/>
+    <circle cx="250" cy="262" r="17"/><circle cx="310" cy="240" r="17"/><circle cx="360" cy="276" r="17"/>
+    <circle cx="450" cy="270" r="16"/><circle cx="520" cy="256" r="16"/>
+  </g>
+  <g fill="#D93A5A">
+    <circle cx="100" cy="310" r="14"/><circle cx="280" cy="300" r="15"/><circle cx="340" cy="312" r="14"/><circle cx="500" cy="300" r="14"/><circle cx="550" cy="286" r="13"/>
+  </g>
+  <g fill="#FFFFFF" opacity="0.5">
+    <circle cx="66" cy="276" r="5"/><circle cx="246" cy="258" r="5"/><circle cx="306" cy="236" r="5"/><circle cx="446" cy="266" r="5"/>
+  </g>
+  <!-- watering can -->
+  <g transform="translate(380 360)">
+    <path d="M0 0 h70 v50 h-70 z" fill="#2A6FC0"/>
+    <path d="M70 12 l40 -26" stroke="#2A6FC0" stroke-width="10" stroke-linecap="round"/>
+    <path d="M10 0 q25 -34 50 0" fill="none" stroke="#1F5FAD" stroke-width="8"/>
+  </g>
+</svg>

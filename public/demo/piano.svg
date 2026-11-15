@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450">
+  <rect width="600" height="450" fill="#F1E4D3"/>
+  <rect y="380" width="600" height="70" fill="#A97C50"/>
+  <!-- picture on wall -->
+  <rect x="420" y="40" width="130" height="100" fill="#D4A62A"/>
+  <rect x="432" y="52" width="106" height="76" fill="#9FD3F0"/>
+  <path d="M432 128 L470 90 L500 115 L520 100 L538 128 Z" fill="#6DB36B"/>
+  <!-- upright piano -->
+  <rect x="80" y="130" width="380" height="250" rx="8" fill="#3B2418"/>
+  <rect x="70" y="120" width="400" height="22" rx="6" fill="#4E3022"/>
+  <rect x="100" y="150" width="340" height="80" rx="6" fill="#4E3022"/>
+  <!-- sheet music -->
+  <rect x="200" y="160" width="140" height="62" fill="#FFFDF7"/>
+  <g stroke="#3B2418" stroke-width="2">
+    <path d="M210 172 H330 M210 182 H330 M210 192 H330 M210 202 H330 M210 212 H330"/>
+  </g>
+  <g fill="#3B2418"><circle cx="230" cy="190" r="5"/><circle cx="260" cy="182" r="5"/><circle cx="290" cy="196" r="5"/><circle cx="315" cy="186" r="5"/></g>
+  <!-- keyboard -->
+  <rect x="90" y="240" width="360" height="50" fill="#FFFFFF"/>
+  <g stroke="#B9B2A6" stroke-width="2">
+    <path d="M114 240 V290 M138 240 V290 M162 240 V290 M186 240 V290 M210 240 V290 M234 240 V290 M258 240 V290 M282 240 V290 M306 240 V290 M330 240 V290 M354 240 V290 M378 240 V290 M402 240 V290 M426 240 V290"/>
+  </g>
+  <g fill="#1F140F">
+    <rect x="107" y="240" width="14" height="30"/><rect x="131" y="240" width="14" height="30"/>
+    <rect x="179" y="240" width="14" height="30"/><rect x="203" y="240" width="14" height="30"/><rect x="227" y="240" width="14" height="30"/>
+    <rect x="275" y="240" width="14" height="30"/><rect x="299" y="240" width="14" height="30"/>
+    <rect x="347" y="240" width="14" height="30"/><rect x="371" y="240" width="14" height="30"/><rect x="395" y="240" width="14" height="30"/>
+  </g>
+  <!-- legs and pedals -->
+  <rect x="100" y="290" width="20" height="90" fill="#2C1A11"/>
+  <rect x="420" y="290" width="20" height="90" fill="#2C1A11"/>
+  <g fill="#D4A62A"><rect x="236" y="364" width="18" height="8" rx="2"/><rect x="264" y="364" width="18" height="8" rx="2"/><rect x="292" y="364" width="18" height="8" rx="2"/></g>
+  <!-- vase of flowers -->
+  <path d="M370 120 h40 l-6 -40 h-28 z" fill="#5E97D8"/>
+  <g fill="#2F7A3A"><path d="M390 80 L380 40 M390 80 L398 36 M390 80 L410 50" stroke="#2F7A3A" stroke-width="4"/></g>
+  <circle cx="380" cy="38" r="10" fill="#F2B705"/><circle cx="398" cy="32" r="10" fill="#F28BB3"/><circle cx="412" cy="48" r="10" fill="#E0412B"/>
+  <!-- stool -->
+  <rect x="200" y="330" width="140" height="18" rx="6" fill="#7A3E2C"/>
+  <rect x="210" y="348" width="12" height="32" fill="#5A2E20"/><rect x="318" y="348" width="12" height="32" fill="#5A2E20"/>
+</svg>
