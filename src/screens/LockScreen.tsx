@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Delete, KeyRound, LifeBuoy } from 'lucide-react';
 import { useNav } from '../app/nav';
 import { formatClock, formatDate } from '../lib/schedule';
-import { DEMO_PIN, PIN_LENGTH } from '../lib/session';
+import { SAMPLE_PIN } from '../lib/seed';
+import { PIN_LENGTH } from '../lib/session';
 import { useNow } from '../lib/useNow';
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -138,10 +139,10 @@ export function LockScreen() {
             <span>Get help</span>
           </button>
 
-          <button type="button" className="lock-demo-pin" onClick={() => submit(DEMO_PIN)}>
+          <button type="button" className="lock-demo-pin" onClick={() => submit(SAMPLE_PIN)}>
             <KeyRound size={20} strokeWidth={2.5} aria-hidden />
             <span>
-              Use demo PIN <span className="lock-demo-digits">({DEMO_PIN.split('').join(' ')})</span>
+              Use demo PIN <span className="lock-demo-digits">({SAMPLE_PIN.split('').join(' ')})</span>
             </span>
           </button>
         </div>

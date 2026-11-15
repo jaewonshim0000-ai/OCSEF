@@ -1,13 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { stopAllPlayback } from '../lib/playback';
 import { resolveRoute, type Route } from '../lib/router';
-import { initialSession, relock, submitPin, type DemoSession, type PinOutcome } from '../lib/session';
+import { SAMPLE_PIN } from '../lib/seed';
+import { initialSession, relock, submitPin, type LockSession, type PinOutcome } from '../lib/session';
 
 export type Flash = 'auto-help' | 'private' | null;
 
 export interface Nav {
   route: Route;
-  session: DemoSession;
+  session: LockSession;
   flash: Flash;
   navigate(path: string, opts?: { replace?: boolean; flash?: Flash }): void;
   back(fallback: string): void;
@@ -38,12 +39,12 @@ function writeHash(path: string, replace: boolean) {
  * route is reset to the keypad, so refreshing starts a new simulated session.
  */
 export function NavProvider({ children }: { children: ReactNode }) {
-  const sessionRef = useRef<DemoSession>(initialSession());
-  const [session, setSessionState] = useState<DemoSession>(sessionRef.current);
+  const sessionRef = useRef<LockSession>(initialSession());
+  const [session, setSessionState] = useState<LockSession>(sessionRef.current);
   const [route, setRoute] = useState<Route>(() => resolveRoute('/lock', false).route);
   const [flash, setFlash] = useState<Flash>(null);
 
-  const setSession = useCallback((next: DemoSession) => {
+  const setSession = useCallback((next: LockSession) => {
     sessionRef.current = next;
     setSessionState(next);
   }, []);
@@ -87,7 +88,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
 
   const doSubmit = useCallback<Nav['submitPin']>(
     (entry) => {
-      const result = submitPin(sessionRef.current, entry);
+      const result = submitPin(sessionRef.current, entry, entry === SAMPLE_PIN);
       if (result.outcome === 'incomplete') return result.outcome;
       setSession(result.session);
       if (result.outcome === 'unlocked') apply('/today', 'push', null);

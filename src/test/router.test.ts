@@ -82,3 +82,27 @@ describe('resolveRoute while unlocked', () => {
     expect(resolveRoute('/setup/privacy', true).route).toMatchObject({ name: 'setup', section: 'privacy' });
   });
 });
+
+describe('first run routing', () => {
+  it('parses /welcome and /start only without extra parts', () => {
+    expect(parseRoute('/welcome').name).toBe('welcome');
+    expect(parseRoute('/start').name).toBe('start');
+    expect(parseRoute('/start/3').name).toBe('not-found');
+  });
+
+  it('sends every path to Welcome on a new install, except the wizard', () => {
+    for (const p of ['/lock', '/today', '/help', '/help/family', '/setup', '/nope']) {
+      expect(resolveRoute(p, false, 'new').route.name).toBe('welcome');
+      expect(resolveRoute(p, true, 'new').route.name).toBe('welcome');
+    }
+    expect(resolveRoute('/start', false, 'new').route.name).toBe('start');
+    expect(resolveRoute('/welcome', false, 'new').route.name).toBe('welcome');
+  });
+
+  it('sends Welcome and the wizard away once set up', () => {
+    for (const mode of ['real', 'sample'] as const) {
+      expect(resolveRoute('/welcome', false, mode).route.name).toBe('lock');
+      expect(resolveRoute('/start', true, mode).route.name).toBe('today');
+    }
+  });
+});

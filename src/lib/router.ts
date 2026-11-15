@@ -1,4 +1,4 @@
-import type { TileId } from './types';
+import type { AppMode, TileId } from './types';
 
 export type RouteName =
   | 'lock'
@@ -17,6 +17,8 @@ export type RouteName =
   | 'memories'
   | 'music'
   | 'setup'
+  | 'welcome'
+  | 'start'
   | 'not-found';
 
 export const SETUP_SECTIONS = ['you', 'home', 'family', 'routine', 'memories', 'music', 'privacy', 'settings'] as const;
@@ -56,6 +58,10 @@ export function parseRoute(rawPath: string): Route {
   switch (a) {
     case 'lock':
       return parts.length === 1 ? { ...base, name: 'lock' } : { ...base, name: 'not-found' };
+    case 'welcome':
+      return parts.length === 1 ? { ...base, name: 'welcome' } : { ...base, name: 'not-found' };
+    case 'start':
+      return parts.length === 1 ? { ...base, name: 'start' } : { ...base, name: 'not-found' };
     case 'help':
       if (parts.length === 1) return { ...base, name: 'help' };
       if (parts.length === 2 && b === 'call') return { ...base, name: 'locked-call' };
@@ -104,12 +110,17 @@ export interface Resolution {
 }
 
 /**
- * Applies the lock guard. While locked, only the keypad and the limited help
+ * Applies the first-run and lock guards. While locked, only the keypad and the limited help
  * views can render. Anything else returns to the help screen, so a private
  * route never mounts and never reads full records.
  */
-export function resolveRoute(rawPath: string, unlocked: boolean): Resolution {
+export function resolveRoute(rawPath: string, unlocked: boolean, mode: AppMode = 'real'): Resolution {
   const route = parseRoute(rawPath);
+  const firstRun = route.name === 'welcome' || route.name === 'start';
+  if (mode === 'new') {
+    return firstRun ? { route, blockedPrivate: false } : { route: parseRoute('/welcome'), blockedPrivate: false };
+  }
+  if (firstRun) return { route: parseRoute(unlocked ? '/today' : '/lock'), blockedPrivate: false };
   if (!unlocked) {
     if (isLockedSafe(route.name)) return { route, blockedPrivate: false };
     return { route: parseRoute('/help'), blockedPrivate: route.name !== 'not-found' };

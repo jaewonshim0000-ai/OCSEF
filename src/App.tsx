@@ -9,7 +9,8 @@ import type { Backend } from './lib/db';
 import type { DemoMediaLoader } from './lib/repo';
 import { formatClock } from './lib/schedule';
 import { useNow } from './lib/useNow';
-import { AUTO_HELP_AFTER, DEMO_PIN } from './lib/session';
+import { SAMPLE_PIN } from './lib/seed';
+import { AUTO_HELP_AFTER } from './lib/session';
 import { LockScreen } from './screens/LockScreen';
 import { LockedExperience, type LockedScreenId } from './screens/locked/LockedViews';
 import { Today } from './screens/companion/Today';
@@ -253,7 +254,7 @@ function DemoNotes() {
         <li>Enter a wrong PIN {AUTO_HELP_AFTER} times. Help opens on its own.</li>
         <li>Tap Family, then the demo call.</li>
         <li>Open Routine and Home.</li>
-        <li>Unlock with demo PIN {DEMO_PIN}. Open Home to see the address.</li>
+        <li>Unlock with demo PIN {SAMPLE_PIN}. Open Home to see the address.</li>
         <li>Start a step-by-step routine.</li>
         <li>Music starts after unlock. Tap the music button at the top right to pause it.</li>
       </ol>

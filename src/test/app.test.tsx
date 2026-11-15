@@ -4,8 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { MemoryBackend } from '../lib/db';
 import { seedSample, type DemoMediaLoader } from '../lib/repo';
-import { DEMO_MEDIA } from '../lib/seed';
-import { DEMO_PIN } from '../lib/session';
+import { DEMO_MEDIA, SAMPLE_PIN } from '../lib/seed';
 
 const loader: DemoMediaLoader = async (backend) => {
   const ids = new Set<string>();
@@ -110,7 +109,7 @@ describe('simulated lock screen', () => {
     const { user } = await renderApp();
     await enterPin(user, '1111');
     await enterPin(user, '2222');
-    await enterPin(user, DEMO_PIN);
+    await enterPin(user, SAMPLE_PIN);
     expect(await screen.findByRole('heading', { name: /Good (morning|afternoon|evening), Peggy/ })).toBeInTheDocument();
     expect(wrongPinsInARow()).toBe('0');
   });
