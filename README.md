@@ -26,6 +26,27 @@ Open http://localhost:5173.
 | `npm run typecheck` | Strict TypeScript check |
 | `npm run build` | Type-checks, then builds to `dist/` with an offline service worker |
 | `npm run preview` | Serves the production build (port 4173) |
+| `npm run dev:phone` | Serves the app over https on your home network, so a phone can open it (port 5174) |
+
+### Try it on a phone
+
+Calling, recording and the camera need a real phone, and phones only allow the microphone and PIN encryption on an https address. Some desktop preview panes block the microphone too, so a computer won't show everything.
+
+1. Create a local certificate once (in Git Bash; it stays in `.cert/`, which git ignores):
+
+   ```bash
+   mkdir -p .cert && MSYS_NO_PATHCONV=1 openssl req -x509 -newkey rsa:2048 -nodes -keyout .cert/key.pem -out .cert/cert.pem -days 365 -subj "/CN=Familiar Place dev"
+   ```
+
+2. Start the phone server:
+
+   ```bash
+   npm run dev:phone
+   ```
+
+3. With the phone on the same Wi-Fi, open the `https://192.168.…:5174` address it prints. The certificate is self-signed, so the phone warns once: choose **Advanced → Proceed**. If the phone can't connect, Windows Firewall may be blocking Node; allow it on private networks.
+
+Data on the phone is separate from the computer's. Set up again there, or restore a backup.
 
 ## First run
 

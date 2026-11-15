@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { defineConfig, type Plugin } from 'vitest/config';
 import react from '@vitejs/plugin-react';
@@ -41,12 +41,29 @@ function serviceWorker(): Plugin {
   };
 }
 
-export default defineConfig({
+/**
+ * `npm run dev:phone` serves over https on the home network, so a phone can
+ * open the app. Phones only allow the microphone and PIN encryption on https.
+ * The certificate is self-signed (see README), so the phone shows a warning once.
+ */
+function phoneServer() {
+  const key = '.cert/key.pem';
+  const cert = '.cert/cert.pem';
+  if (!existsSync(key) || !existsSync(cert)) {
+    throw new Error('No dev certificate in .cert/. Create one with the openssl command in README.md, then try again.');
+  }
+  return { host: true, port: 5174, strictPort: true, https: { key: readFileSync(key), cert: readFileSync(cert) } };
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [react(), serviceWorker()],
-  server: {
-    port: 5173,
-    strictPort: true,
-  },
+  server:
+    mode === 'phone'
+      ? phoneServer()
+      : {
+          port: 5173,
+          strictPort: true,
+        },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
@@ -54,4 +71,4 @@ export default defineConfig({
     // Whole-app flows tap the keypad dozens of times and hash real PINs.
     testTimeout: 20_000,
   },
-});
+}));
