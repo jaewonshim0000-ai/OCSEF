@@ -11,7 +11,8 @@ import {
 } from './defaults';
 import { hashPin } from './pin';
 import { DEMO_MEDIA, SAMPLE_PIN, demoAppData } from './seed';
-import type { AppData, Approvals, AudioRef, MediaId, PhotoRef, Security, SetupState } from './types';
+import type { BackupContents } from './backup';
+import type { AppData, Approvals, AudioRef, MediaId, MediaRecord, PhotoRef, Security, SetupState } from './types';
 
 interface Meta {
   seeded: boolean;
@@ -195,4 +196,30 @@ export async function collectGarbage(
   const stale = (await backend.listMediaIds()).filter((id) => !referenced.has(id) && !protect.has(id));
   await backend.deleteMedia(stale);
   return stale;
+}
+
+/** Everything a backup needs: all data, plus each stored media record the data refers to. */
+export async function collectBackup(backend: Backend, data: AppData): Promise<BackupContents> {
+  const media: MediaRecord[] = [];
+  for (const id of mediaRefs(data)) {
+    const record = await backend.getMedia(id);
+    if (record) media.push(record);
+  }
+  return { data, media };
+}
+
+export async function estimateBackupBytes(backend: Backend, data: AppData): Promise<number> {
+  const { media } = await collectBackup(backend, data);
+  return JSON.stringify(data).length + media.reduce((n, m) => n + m.blob.size, 0);
+}
+
+/**
+ * Replaces everything with a backup. Media goes first and the data plus meta
+ * last, so an interrupted restore looks like a new install and can be retried.
+ */
+export async function restoreBackupContents(backend: Backend, { data, media }: BackupContents): Promise<AppData> {
+  await backend.clearAll();
+  for (const m of media) await backend.putMedia(m);
+  await writeAll(backend, { ...data, setup: { ...data.setup, mode: 'real', wizardStep: null } });
+  return loadAppData(backend);
 }
