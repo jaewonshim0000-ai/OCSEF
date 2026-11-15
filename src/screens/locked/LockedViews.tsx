@@ -9,6 +9,7 @@ import { Button, Heading, Notice, Screen, Stack, TopBar } from '../../components
 import type { LockedPhoto, LockedPreview } from '../../lib/preview';
 import type { TileId } from '../../lib/types';
 import { PhoneCallButton } from '../../components/PhoneCall';
+import { TodayNoteCard } from '../../components/TodayNote';
 
 /**
  * Limited views shown while Familiar Place is locked.
@@ -65,7 +66,7 @@ function LockedStatus() {
   );
 }
 
-function LockedHelp({ go, onTryPin, flash }: LockedProps) {
+function LockedHelp({ preview, go, onTryPin, flash }: LockedProps) {
   return (
     <Screen top={<LockedStatus />} label="Get help">
       <Heading sub="Choose one.">Need a hand?</Heading>
@@ -77,6 +78,7 @@ function LockedHelp({ go, onTryPin, flash }: LockedProps) {
           That's private until the phone is unlocked. Here is what you can see now.
         </Notice>
       ) : null}
+      <TodayNoteCard note={preview.note} />
       <TileGrid onOpen={go} />
       {onTryPin ? (
         <Button icon={KeyRound} onClick={onTryPin}>

@@ -5,6 +5,7 @@ import { Button, Heading, Notice, Screen, TopBar } from '../../components/ui';
 import { formatClock, formatDate, formatTime, nextUp, partOfDay, todayEntries, type TodayEntry } from '../../lib/schedule';
 import { useStore } from '../../lib/store';
 import { useNow } from '../../lib/useNow';
+import { TodayNoteCard } from '../../components/TodayNote';
 
 export function NextUpCard({
   entry,
@@ -67,6 +68,8 @@ export function Today() {
           All set. Add routines, memories and music any time in Helper setup.
         </Notice>
       ) : null}
+
+      <TodayNoteCard note={data.schedule.note} />
 
       <NextUpCard
         entry={next}

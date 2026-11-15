@@ -31,6 +31,7 @@ import { HelperGate } from './screens/setup/HelperGate';
 import { SetupSettings } from './screens/setup/SetupSettings';
 import { SetupWizard } from './screens/start/SetupWizard';
 import { Welcome } from './screens/start/Welcome';
+import { TodayNoteCard } from './components/TodayNote';
 
 export function App({ backend, loader }: { backend?: Backend; loader?: DemoMediaLoader }) {
   return (
@@ -123,9 +124,11 @@ function LockedLive({ screen }: { screen: LockedScreenId }) {
 
 function HelpUnlocked() {
   const { navigate } = useNav();
+  const { data } = useStore();
   return (
     <Screen top={<TopBar back={{ label: 'Back to Today', onClick: () => navigate('/today') }} />} label="Get help">
       <Heading sub="Choose one.">Need a hand?</Heading>
+      <TodayNoteCard note={data.schedule.note} />
       <TileGrid onOpen={(tile) => navigate(`/${tile}?from=help`)} />
     </Screen>
   );

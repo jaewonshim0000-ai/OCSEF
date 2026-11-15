@@ -76,3 +76,26 @@ export function partOfDay(now: Date): 'morning' | 'afternoon' | 'evening' {
   if (h < 18) return 'afternoon';
   return 'evening';
 }
+
+/**
+ * When a note set to show until `time` ("HH:MM") should stop. An empty time
+ * means the end of today; a time already past today means that time tomorrow.
+ */
+export function noteUntil(time: string, now: Date): number {
+  const end = new Date(now);
+  if (!isValidTime(time)) {
+    end.setHours(23, 59, 59, 999);
+    return end.getTime();
+  }
+  const mins = minutesOf(time);
+  end.setHours(Math.floor(mins / 60), mins % 60, 0, 0);
+  if (end.getTime() <= now.getTime()) end.setDate(end.getDate() + 1);
+  return end.getTime();
+}
+
+/** The "HH:MM" a note's end time was set to, or "" when it runs to the end of the day. */
+export function noteTimeOf(until: number): string {
+  const d = new Date(until);
+  if (d.getHours() === 23 && d.getMinutes() === 59 && d.getSeconds() === 59) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}

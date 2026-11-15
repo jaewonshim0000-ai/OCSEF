@@ -6,7 +6,7 @@ import { ConfirmDialog } from '../../components/Modal';
 import { ShowBeforeUnlock } from '../../components/Switch';
 import { Button, Card, Notice } from '../../components/ui';
 import { newId } from '../../lib/defaults';
-import { formatTime, isValidTime, minutesOf } from '../../lib/schedule';
+import { formatClock, formatTime, isValidTime, minutesOf, noteTimeOf, noteUntil } from '../../lib/schedule';
 import { useStore } from '../../lib/store';
 import type { Approvals, Routine, RoutineStep, Schedule } from '../../lib/types';
 import { SectionTitle, SetupPage, useDraft } from './common';
@@ -14,10 +14,18 @@ import { SectionTitle, SetupPage, useDraft } from './common';
 interface Draft {
   schedule: Schedule;
   routineCue: boolean;
+  noteText: string;
+  /** "HH:MM", or "" for the end of the day. */
+  noteTime: string;
+  noteShow: boolean;
 }
 
 export function mergeRoutineApprovals(base: Approvals, d: Draft): Approvals {
-  return { ...base, routineCue: d.routineCue && !!d.schedule.lockedCue.trim() };
+  return { ...base, routineCue: d.routineCue && !!d.schedule.lockedCue.trim(), note: d.noteShow && !!d.noteText.trim() };
+}
+
+function noteDraft(note: Schedule['note']): Pick<Draft, 'noteText' | 'noteTime'> {
+  return { noteText: note?.text ?? '', noteTime: note ? noteTimeOf(note.until) : '' };
 }
 
 export function SetupRoutine() {
@@ -26,7 +34,11 @@ export function SetupRoutine() {
   const { draft, setDraft, dirty, markSaved } = useDraft<Draft>(() => ({
     schedule: data.schedule,
     routineCue: data.approvals.routineCue,
+    ...noteDraft(data.schedule.note),
+    noteShow: data.approvals.note,
   }));
+  const savedNote = data.schedule.note;
+  const noteEnded = !!savedNote && Date.now() >= savedNote.until;
   const s = draft.schedule;
   const setSchedule = (patch: Partial<Schedule>) => setDraft((d) => ({ ...d, schedule: { ...d.schedule, ...patch } }));
   const invalid = s.items.some((i) => i.label.trim() && !isValidTime(i.time));
@@ -35,13 +47,21 @@ export function SetupRoutine() {
     <SetupPage
       title="Routine"
       dirty={dirty}
-      previewSource={{ ...data, schedule: s, approvals: mergeRoutineApprovals(data.approvals, draft) }}
+      previewSource={{
+        ...data,
+        schedule: { ...s, note: draft.noteText.trim() ? { text: draft.noteText, until: noteUntil(draft.noteTime, new Date()) } : null },
+        approvals: mergeRoutineApprovals(data.approvals, draft),
+      }}
       onSave={async () => {
         if (invalid) throw new Error('invalid time');
         const schedule: Schedule = {
           lockedCue: s.lockedCue.trim(),
-          // Today's note is saved on its own card; keep whatever is saved now.
-          note: data.schedule.note,
+          note: !draft.noteText.trim()
+            ? null
+            : // An unchanged note keeps its end time, so saving later never brings back an ended note.
+              savedNote && savedNote.text === draft.noteText.trim() && noteTimeOf(savedNote.until) === draft.noteTime
+              ? savedNote
+              : { text: draft.noteText.trim(), until: noteUntil(draft.noteTime, new Date()) },
           items: s.items
             .filter((i) => i.label.trim() && isValidTime(i.time))
             .map((i) => ({ ...i, label: i.label.trim() }))
@@ -49,9 +69,40 @@ export function SetupRoutine() {
         };
         const approvals = mergeRoutineApprovals(data.approvals, { ...draft, schedule });
         await save({ schedule, approvals });
-        markSaved({ schedule, routineCue: approvals.routineCue });
+        markSaved({ schedule, routineCue: approvals.routineCue, ...noteDraft(schedule.note), noteShow: approvals.note });
       }}
     >
+      <Card>
+        <TextArea
+          label="A note for today"
+          hint="For example: You're at the dentist. Maya is in the waiting room and will drive you home."
+          value={draft.noteText}
+          onChange={(v) => setDraft((d) => ({ ...d, noteText: v }))}
+          rows={3}
+          maxLength={300}
+        />
+        <TextField
+          label="Show until"
+          type="time"
+          hint="Leave empty to show it until the end of today."
+          value={draft.noteTime}
+          onChange={(v) => setDraft((d) => ({ ...d, noteTime: v }))}
+        />
+        {noteEnded && savedNote ? <Notice>{`This note ended at ${formatClock(new Date(savedNote.until))}.`}</Notice> : null}
+        <ShowBeforeUnlock
+          what="note for today"
+          checked={draft.noteShow && !!draft.noteText.trim()}
+          disabled={!draft.noteText.trim()}
+          onChange={(v) => setDraft((d) => ({ ...d, noteShow: v }))}
+          note={!draft.noteText.trim() ? 'Write a note first.' : undefined}
+        />
+        {draft.noteText ? (
+          <Button size="md" icon={Trash2} onClick={() => setDraft((d) => ({ ...d, noteText: '', noteTime: '', noteShow: false }))}>
+            Remove note
+          </Button>
+        ) : null}
+      </Card>
+
       <Card>
         <TextField
           label="Reminder for the locked screen"

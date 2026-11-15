@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
@@ -1038,5 +1038,77 @@ describe('lock-screen help (Android)', () => {
     goToHash('/help');
     await user.click(screen.getByRole('button', { name: 'Try PIN again' }));
     expect(lockHelp.requestUnlock).toHaveBeenCalled();
+  });
+});
+
+describe("today's note", () => {
+  afterEach(() => vi.useRealTimers());
+
+  async function openRoutineSetup(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(await screen.findByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /^Routine/ }));
+  }
+
+  it('shows on Today, before unlock only when allowed, and goes away at its time', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 14, 9, 0));
+    const note = "You're at the dentist. Maya will drive you home.";
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await openRoutineSetup(user);
+    await user.type(screen.getByLabelText('A note for today'), note);
+    fireEvent.change(screen.getByLabelText('Show until'), { target: { value: '11:30' } });
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+
+    goToHash('/today');
+    expect(await screen.findByText(note)).toBeInTheDocument();
+    // Not shown before unlock until the helper allows it.
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    await user.click(screen.getByRole('button', { name: 'Get help' }));
+    expect(screen.queryByText(note)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Try PIN again' }));
+    await enterPin(user, '1357');
+    await openRoutineSetup(user);
+    await user.click(screen.getByRole('switch', { name: 'Show before unlock: note for today' }));
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+    goToHash('/today');
+    await user.click(await screen.findByRole('button', { name: 'Lock' }));
+    await user.click(screen.getByRole('button', { name: 'Get help' }));
+    expect(screen.getByText(note)).toBeInTheDocument();
+
+    // At 11:30 it has ended.
+    vi.setSystemTime(new Date(2026, 10, 14, 11, 30));
+    goToHash('/help/home');
+    goToHash('/help');
+    expect(screen.queryByText(note)).not.toBeInTheDocument();
+  });
+
+  it('stays ended when the Routine page is saved again later', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 14, 9, 0));
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await openRoutineSetup(user);
+    await user.type(screen.getByLabelText('A note for today'), 'Maya is coming at 11.');
+    fireEvent.change(screen.getByLabelText('Show until'), { target: { value: '11:30' } });
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+
+    // At noon the helper edits something else on the page and saves.
+    vi.setSystemTime(new Date(2026, 10, 14, 12, 0));
+    // Hours later the helper window has closed, so the helper PIN is asked again.
+    goToHash('/setup/routine');
+    await enterPin(user, HELPER_PIN);
+    expect(await screen.findByText(/This note ended at/)).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Reminder for the locked screen'), 'Lunch at noon');
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+    goToHash('/today');
+    expect(await screen.findByRole('heading', { name: /Good/ })).toBeInTheDocument();
+    expect(screen.queryByText('Maya is coming at 11.')).not.toBeInTheDocument();
   });
 });

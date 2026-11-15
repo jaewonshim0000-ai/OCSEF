@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isValidTime, nextUp, todayEntries } from '../lib/schedule';
+import { noteUntil } from '../lib/schedule';
 import { demoAppData } from '../lib/seed';
 
 describe('schedule', () => {
@@ -29,5 +30,21 @@ describe('schedule', () => {
     expect(list.map((e) => e.label)).toEqual(['Ok']);
     expect(isValidTime('9:00')).toBe(false);
     expect(isValidTime('09:00')).toBe(true);
+  });
+});
+
+describe('noteUntil', () => {
+  const now = new Date(2026, 10, 14, 9, 0);
+
+  it('ends at the end of today when no time is given', () => {
+    expect(noteUntil('', now)).toBe(new Date(2026, 10, 14, 23, 59, 59, 999).getTime());
+  });
+
+  it('ends at a later time today', () => {
+    expect(noteUntil('11:30', now)).toBe(new Date(2026, 10, 14, 11, 30).getTime());
+  });
+
+  it('means tomorrow when the time has already passed today', () => {
+    expect(noteUntil('08:15', now)).toBe(new Date(2026, 10, 15, 8, 15).getTime());
   });
 });
