@@ -48,6 +48,31 @@ Calling, recording and the camera need a real phone, and phones only allow the m
 
 Data on the phone is separate from the computer's. Set up again there, or restore a backup.
 
+### Android app
+
+The Android app is the same app packaged with [Capacitor](https://capacitorjs.com). It adds what a phone browser can't do: help from the phone's lock screen, saving backups through the share sheet, and Read aloud with the phone's own voice.
+
+Building needs JDK 21 and the Android SDK, with its path in `android/local.properties` (`sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`; this file is git-ignored). Then run:
+
+```bash
+npm run android:build
+```
+
+The app is written to `android/app/build/outputs/apk/debug/app-debug.apk`. To install it, copy that file to the phone (USB, Drive or email), open it, and allow installing apps from that source when asked. With USB debugging on, `adb install -r android/app/build/outputs/apk/debug/app-debug.apk` also works.
+
+**Check on the phone** (nothing here can be tested without one):
+
+1. Set up with a helper PIN, their PIN, and a trusted person whose number you can call.
+2. Family → **Call**: the dialer opens with the number.
+3. Helper setup → About you → **Record**: allow the microphone, record, then play it back.
+4. Helper setup → Home → **Choose photo**: the camera or the gallery opens.
+5. Home → **Read aloud**: the phone speaks.
+6. Settings → **Save a backup**: the share sheet opens, so save the file to Files or Drive. Then Erase everything → **Restore from a backup** → choose that file.
+7. Settings → Lock → **Get help from the lock screen** is on, so allow notifications. Lock the phone: "Familiar Place · Tap for help" appears on the lock screen. Tap it, and help opens without unlocking, showing only the Before unlock items, with no way into Today or Helper setup. **Try PIN again** asks the phone to unlock, then opens the app.
+8. Restart the phone: the notification comes back.
+
+If the notification doesn't appear on the lock screen, check the phone's Settings → Notifications → Lock screen. Some phones hide notifications there by default.
+
 ## First run
 
 A new install opens on **Welcome**:
