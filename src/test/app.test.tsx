@@ -692,8 +692,10 @@ describe('helper gate', () => {
     await enterPin(user, HELPER_PIN);
     expect(await screen.findByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
-    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    // Moving between setup pages doesn't ask again.
+    goToHash('/setup/settings');
+    expect(screen.getByRole('heading', { name: 'Settings and reset' })).toBeInTheDocument();
+    goToHash('/setup');
     expect(screen.getByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
 
     vi.setSystemTime(Date.now() + 10 * 60_000);
@@ -702,6 +704,24 @@ describe('helper gate', () => {
     expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('heading', { name: /Good/ })).toBeInTheDocument();
+  });
+
+  it("asks for the helper PIN every time someone comes from the person's screens", async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    expect(await screen.findByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
+    // Leaving for Today closes Helper setup, so coming straight back asks again.
+    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
+    // The same when leaving by typing an address.
+    await enterPin(user, HELPER_PIN);
+    await screen.findByRole('heading', { name: 'Helper setup' });
+    goToHash('/music');
+    goToHash('/setup');
+    expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
   });
 
   it('Cancel returns to Today without opening setup', async () => {

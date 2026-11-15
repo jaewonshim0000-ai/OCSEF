@@ -66,6 +66,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const sessionRef = useRef<LockSession>(initialSession());
   const [session, setSessionState] = useState<LockSession>(sessionRef.current);
   const [route, setRoute] = useState<Route>(() => resolveRoute('/lock', false).route);
+  const routeNameRef = useRef<Route['name']>(route.name);
   const [flash, setFlash] = useState<Flash>(null);
   const overLockRef = useRef(false);
   const [overLock, setOverLock] = useState(false);
@@ -110,11 +111,15 @@ export function NavProvider({ children }: { children: ReactNode }) {
         writeHash(finalPath, mode === 'replace' || mode === 'none');
       }
       stopAllPlayback();
+      // Helper setup and the person's screens are separate: leaving Helper setup
+      // closes it, so the helper PIN is asked again on the way back in.
+      if (routeNameRef.current === 'setup' && resolution.route.name !== 'setup') closeGate();
+      routeNameRef.current = resolution.route.name;
       setRoute(resolution.route);
       setFlash(resolution.blockedPrivate ? 'private' : nextFlash);
       if (sessionRef.current.view !== finalPath) setSession({ ...sessionRef.current, view: finalPath });
     },
-    [setSession, snapshot],
+    [closeGate, setSession, snapshot],
   );
 
   // Follow back/forward and hash changes. The first route is set by restart().
