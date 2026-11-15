@@ -42,6 +42,9 @@ export function SetupPrivacy() {
         {lastStopped ? `${lastStopped} is no longer shown before unlock.` : ''}
       </p>
       {problem ? <Notice tone="warn">{problem}</Notice> : null}
+      {!data.security.lockEnabled ? (
+        <Notice icon={ShieldCheck}>The lock is off, so nothing here is used right now. Turn the PIN on in Settings to use it.</Notice>
+      ) : null}
       {isPreviewEmpty(p) ? (
         <Notice tone="ok" icon={ShieldCheck}>
           Nothing is shown before unlock. The locked help screen still shows the four buttons, each with a short note.

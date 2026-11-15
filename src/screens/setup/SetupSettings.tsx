@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Archive, Database, Download, KeyRound, Lock, Phone, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { Archive, Database, Download, KeyRound, Lock, Trash2, Upload } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { ChoosePin } from '../../components/ChoosePin';
 import { ConfirmDialog, Modal } from '../../components/Modal';
@@ -12,7 +12,7 @@ import { speechAvailable } from '../../lib/playback';
 import { formatDate } from '../../lib/schedule';
 import { HELPER_PIN_LENGTH, PIN_LENGTH } from '../../lib/session';
 import { useStore } from '../../lib/store';
-import type { CallMode, Prefs, Security, TextSize } from '../../lib/types';
+import type { Prefs, Security, TextSize } from '../../lib/types';
 import { SetupPage } from './common';
 import { SaveBackupDialog } from './SaveBackupDialog';
 
@@ -23,9 +23,9 @@ const SIZES: Array<{ id: TextSize; label: string }> = [
 ];
 
 export function SetupSettings() {
-  const { data, save, persistent, startSample, eraseEverything } = useStore();
+  const { data, save, persistent, eraseEverything } = useStore();
   const { restart } = useNav();
-  const [confirm, setConfirm] = useState<null | 'phone' | 'reset' | 'erase' | 'lock-off'>(null);
+  const [confirm, setConfirm] = useState<null | 'erase' | 'lock-off'>(null);
   const [message, setMessage] = useState<string | null>(null);
   const prefs = data.prefs;
   const sample = data.setup.mode === 'sample';
@@ -49,12 +49,6 @@ export function SetupSettings() {
     } catch {
       setMessage("That setting couldn't be saved. Please try again.");
     }
-  };
-
-  const chooseCallMode = (mode: CallMode) => {
-    if (mode === prefs.callMode) return;
-    if (mode === 'phone') setConfirm('phone');
-    else setPrefs({ callMode: 'demo' });
   };
 
   return (
@@ -140,22 +134,6 @@ export function SetupSettings() {
         </Card>
       ) : null}
 
-      <Card>
-        <h2 className="card-title" id="call-mode-label">
-          <Phone size={24} strokeWidth={2.5} aria-hidden /> Calls
-        </h2>
-        <div className="radio-cards" role="radiogroup" aria-labelledby="call-mode-label">
-          <button type="button" role="radio" aria-checked={prefs.callMode === 'demo'} className="radio-card" onClick={() => chooseCallMode('demo')}>
-            <span className="radio-card-title">Demo call (recommended for the demo)</span>
-            <span className="radio-card-desc">Shows who would be called. Nobody is phoned.</span>
-          </button>
-          <button type="button" role="radio" aria-checked={prefs.callMode === 'phone'} className="radio-card" onClick={() => chooseCallMode('phone')}>
-            <span className="radio-card-title">Use the phone’s dialer</span>
-            <span className="radio-card-desc">Opens the phone’s own calling app with the number.</span>
-          </button>
-        </div>
-      </Card>
-
       {!sample ? (
         <Card>
           <h2 className="card-title">
@@ -183,9 +161,6 @@ export function SetupSettings() {
         {persistent && !kept ? (
           <p>This browser may clear Familiar Place's data if the phone runs low on space. Keep a recent backup.</p>
         ) : null}
-        <Button icon={RotateCcw} onClick={() => setConfirm('reset')}>
-          Restore the demo profile
-        </Button>
         <Button variant="danger" icon={Trash2} onClick={() => setConfirm('erase')}>
           Erase everything
         </Button>
@@ -235,53 +210,13 @@ export function SetupSettings() {
           }}
         />
       ) : null}
-      {confirm === 'phone' ? (
-        <ConfirmDialog
-          title="Use the phone’s dialer?"
-          body={
-            <>
-              <p>Call buttons will open the phone’s calling app with the number, and a real call can be made.</p>
-              <p>
-                If a call button is shown before unlock, the phone’s dialer may show that person’s number on the lock
-                screen.
-              </p>
-            </>
-          }
-          confirmLabel="Use the dialer"
-          cancelLabel="Keep demo calls"
-          onCancel={() => setConfirm(null)}
-          onConfirm={() => {
-            setConfirm(null);
-            setPrefs({ callMode: 'phone' });
-          }}
-        />
-      ) : null}
-      {confirm === 'reset' ? (
-        <ConfirmDialog
-          title="Restore the demo profile?"
-          body={<p>This deletes every change, photo and recording saved on this device, and puts back the fictional demo profile.</p>}
-          confirmLabel="Delete changes and restore"
-          danger
-          onCancel={() => setConfirm(null)}
-          onConfirm={async () => {
-            setConfirm(null);
-            try {
-              await startSample();
-              restart();
-              setMessage(null);
-            } catch {
-              setMessage("The reset didn't finish. Please try again.");
-            }
-          }}
-        />
-      ) : null}
       {confirm === 'erase' ? (
         <ConfirmDialog
           title="Erase everything?"
           body={
             <p>
-              This deletes everything saved on this device, including photos and recordings. The locked help screen will
-              show nothing personal until it is set up again. This can't be undone.
+              This deletes everything saved on this device, including photos and recordings. Familiar Place will go back
+              to its Welcome screen. This can't be undone.
             </p>
           }
           confirmLabel="Erase everything"

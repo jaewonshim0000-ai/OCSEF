@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
-import { MusicCornerScope, MusicProvider, useMusic } from './app/music';
+import { MusicCornerScope, MusicProvider } from './app/music';
 import { NavProvider, useNav } from './app/nav';
 import { RestoreDialog } from './components/RestoreDialog';
+import { SampleBanner } from './components/SampleBanner';
 import { Button, Heading, Screen, TopBar } from './components/ui';
 import { TileGrid } from './components/TileGrid';
 import { isLockedSafe } from './lib/router';
 import { StoreProvider, useStore } from './lib/store';
 import type { Backend } from './lib/db';
 import type { DemoMediaLoader } from './lib/repo';
-import { formatClock } from './lib/schedule';
-import { useNow } from './lib/useNow';
-import { SAMPLE_PIN } from './lib/seed';
-import { AUTO_HELP_AFTER } from './lib/session';
 import { LockScreen } from './screens/LockScreen';
 import { LockedExperience, type LockedScreenId } from './screens/locked/LockedViews';
 import { Today } from './screens/companion/Today';
@@ -48,7 +45,7 @@ export function App({ backend, loader }: { backend?: Backend; loader?: DemoMedia
 
 function Shell() {
   const { ready, data } = useStore();
-  const { route } = useNav();
+  const { route, session } = useNav();
 
   useEffect(() => {
     document.documentElement.dataset.textSize = data.prefs.textSize;
@@ -69,24 +66,13 @@ function Shell() {
 
   return (
     <div className="stage">
-      <DemoNotes />
       <div className="device">
         <div className="device-screen">
-          <StatusBar />
+          {ready && data.setup.mode === 'sample' && session.unlocked ? <SampleBanner /> : null}
           <div className="device-content">{ready ? <Screens /> : <Loading />}</div>
           <div id="modal-root" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatusBar() {
-  const now = useNow();
-  return (
-    <div className="status-bar" aria-hidden>
-      <span>{formatClock(now)}</span>
-      <span className="status-bar-demo">Demo phone</span>
     </div>
   );
 }
@@ -233,67 +219,4 @@ function SetupScreens() {
     default:
       return <SetupHub />;
   }
-}
-
-/** Notes beside the phone on wide screens, for presenters and judges. */
-function DemoNotes() {
-  const { session } = useNav();
-  const { persistent } = useStore();
-  const music = useMusic();
-  const musicStatus = !music.current
-    ? 'No songs with music'
-    : !session.unlocked
-      ? 'Off while locked'
-      : music.state === 'playing'
-      ? 'Playing'
-      : music.state === 'waiting'
-        ? 'Paused for another sound'
-        : music.state === 'blocked'
-          ? 'Waiting for a tap'
-          : music.state === 'failed'
-            ? 'Couldn’t play'
-            : 'Paused';
-  return (
-    <aside className="demo-notes" aria-label="About this demo">
-      <p className="demo-notes-kicker">Working prototype</p>
-      <h2 className="demo-notes-title">Familiar Place</h2>
-      <p className="demo-notes-promise">
-        If your phone is locked, you still have a way to get your bearings and reach someone you trust.
-      </p>
-      <dl className="demo-status">
-        <div>
-          <dt>Demo phone</dt>
-          <dd>{session.unlocked ? 'Unlocked' : 'Locked'}</dd>
-        </div>
-        <div>
-          <dt>Wrong PINs in a row</dt>
-          <dd>{session.consecutiveInvalid}</dd>
-        </div>
-        <div>
-          <dt>Help opened automatically</dt>
-          <dd>{session.autoHelpShown ? 'Yes, this sequence' : 'Not yet'}</dd>
-        </div>
-        <div>
-          <dt>Background music</dt>
-          <dd>{musicStatus}</dd>
-        </div>
-        <div>
-          <dt>Storage</dt>
-          <dd>{persistent ? 'This device only' : 'This visit only'}</dd>
-        </div>
-      </dl>
-      <ol className="demo-steps">
-        <li>Enter a wrong PIN {AUTO_HELP_AFTER} times. Help opens on its own.</li>
-        <li>Tap Family, then the demo call.</li>
-        <li>Open Routine and Home.</li>
-        <li>Unlock with demo PIN {SAMPLE_PIN}. Open Home to see the address.</li>
-        <li>Start a step-by-step routine.</li>
-        <li>Music starts after unlock. Tap the music button at the top right to pause it.</li>
-      </ol>
-      <p className="demo-notes-fine">
-        Fictional people and sample media. Simulated lock screen: never type a real passcode. Refreshing the page starts
-        a new lock session.
-      </p>
-    </aside>
-  );
 }

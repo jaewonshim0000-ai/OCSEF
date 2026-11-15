@@ -1,8 +1,8 @@
 {
   "name": "familiar-place",
   "private": true,
-  "version": "0.1.0",
-  "description": "Phone-first assistive prototype for people living with dementia: a four-button help screen behind a simulated lock screen, plus a daily companion.",
+  "version": "0.2.0",
+  "description": "Phone-first assistive app for people living with dementia: a four-button help screen behind an in-app lock, plus a daily companion.",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -37,7 +37,7 @@ export interface Route {
 
 const TILES: readonly TileId[] = ['home', 'family', 'you', 'routine'];
 
-/** Routes that may render while the demo phone is locked. */
+/** Routes that may render while Familiar Place is locked. */
 const LOCKED_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>(['lock', 'help', 'locked-tile', 'locked-call']);
 
 export function isLockedSafe(name: RouteName): boolean {

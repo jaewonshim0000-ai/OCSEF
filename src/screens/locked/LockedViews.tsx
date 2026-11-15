@@ -10,7 +10,7 @@ import type { LockedPhoto, LockedPreview } from '../../lib/preview';
 import type { TileId } from '../../lib/types';
 
 /**
- * Limited views shown while the demo phone is locked.
+ * Limited views shown while Familiar Place is locked.
  *
  * These components receive only the LockedPreview, which is built from
  * explicitly approved values. They never import the store's full records.

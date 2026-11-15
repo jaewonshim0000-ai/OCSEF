@@ -97,68 +97,40 @@ img {
   border: 0;
 }
 
-/* ---------- Stage and phone frame ---------- */
+/* ---------- App frame ---------- */
 
 .stage {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 56px;
-  padding: 24px;
 }
 
 .device {
-  flex-shrink: 0;
-  width: 400px;
-  height: min(860px, calc(100vh - 48px));
-  height: min(860px, calc(100dvh - 48px));
-  min-height: 560px;
-  padding: 12px;
-  border-radius: 52px;
-  background: #121212;
-  box-shadow:
-    0 30px 60px rgba(30, 24, 16, 0.28),
-    inset 0 0 0 2px #3a3a3a;
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg);
 }
 
 .device-screen {
   position: relative;
   height: 100%;
-  border-radius: 40px;
   overflow: hidden;
   /* clip also blocks programmatic scrolling of the frame itself. */
   overflow: clip;
   background: var(--bg);
   display: flex;
   flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-.status-bar {
-  flex-shrink: 0;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 30px 0;
-  font-size: 14px;
-  font-weight: 700;
-  background: var(--bg);
-  color: var(--ink);
-}
-
-.status-bar-demo {
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.device-screen:has(.lock) .status-bar,
-.device-screen:has(.demo-call) .status-bar,
-.device-screen:has(.locked-status) .status-bar {
+.device-screen:has(.lock),
+.device-screen:has(.demo-call),
+.device-screen:has(.locked-status) {
   background: var(--lock-bg);
-  color: #fff;
 }
 
 .device-content {
@@ -168,73 +140,11 @@ img {
   flex-direction: column;
 }
 
-.demo-notes {
-  max-width: 340px;
-  color: var(--ink);
-}
-
-.demo-notes-kicker {
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-
-.demo-notes-title {
-  font-size: 2.25rem;
-  line-height: 1.1;
-  margin: 4px 0 12px;
-}
-
-.demo-notes-promise {
-  font-size: 1.125rem;
-  margin-bottom: 20px;
-}
-
-.demo-status {
-  margin: 0 0 20px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border: 2px solid var(--line);
-  border-radius: 14px;
-  display: grid;
-  gap: 6px;
-}
-
-.demo-status div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 1rem;
-}
-
-.demo-status dt {
-  color: var(--ink-2);
-}
-
-.demo-status dd {
-  margin: 0;
-  font-weight: 700;
-  text-align: right;
-}
-
-.demo-steps {
-  margin: 0 0 16px;
-  padding-left: 1.3em;
-  font-size: 1rem;
-  display: grid;
-  gap: 4px;
-}
-
-.demo-notes-fine {
-  font-size: 0.875rem;
-  color: var(--ink-2);
-}
-
-@media (max-width: 980px) {
-  .demo-notes {
-    display: none;
+@media (min-width: 521px) {
+  .device {
+    box-shadow:
+      0 0 0 1px var(--line),
+      0 12px 40px rgba(30, 24, 16, 0.12);
   }
 }
 
@@ -242,26 +152,21 @@ img {
   body {
     background: var(--bg);
   }
-  .stage {
-    display: block;
-    padding: 0;
-  }
-  .device {
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: var(--bg);
-  }
-  .device-screen {
-    border-radius: 0;
-  }
-  .status-bar {
-    display: none;
-  }
+}
+
+.sample-banner {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 12px;
+  padding: 4px 16px;
+  background: var(--help);
+  color: var(--help-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 /* ---------- Screen layout ---------- */

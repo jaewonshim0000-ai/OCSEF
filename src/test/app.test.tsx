@@ -24,11 +24,6 @@ async function renderApp() {
   return { user, backend };
 }
 
-function wrongPinsInARow(): string {
-  const term = screen.getByText('Wrong PINs in a row').nextElementSibling;
-  return term?.textContent ?? '';
-}
-
 async function enterPin(user: ReturnType<typeof userEvent.setup>, digits: string) {
   for (const d of digits) {
     await user.click(screen.getByRole('button', { name: d }));
@@ -111,7 +106,6 @@ describe('simulated lock screen', () => {
       expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
       expect(screen.getByRole('status')).toHaveTextContent("That PIN didn't match");
       expect(screen.getByRole('img', { name: '0 of 4 numbers entered' })).toBeInTheDocument();
-      expect(wrongPinsInARow()).toBe(String(i));
     }
     await enterPin(user, '1111');
     expect(await screen.findByRole('heading', { name: 'Need a hand?' })).toBeInTheDocument();
@@ -127,10 +121,8 @@ describe('simulated lock screen', () => {
     await screen.findByRole('heading', { name: 'Need a hand?' });
     await user.click(screen.getByRole('button', { name: 'Try PIN again' }));
     expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
-    expect(wrongPinsInARow()).toBe('4');
     await enterPin(user, '9999');
     expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
-    expect(wrongPinsInARow()).toBe('5');
     expect(screen.getByRole('button', { name: 'Get help' })).toBeInTheDocument();
   });
 
@@ -148,7 +140,11 @@ describe('simulated lock screen', () => {
     await user.click(screen.getByRole('button', { name: 'Get help' }));
     expect(screen.getByRole('heading', { name: 'Need a hand?' })).toBeInTheDocument();
     expect(screen.queryByText(/Having trouble unlocking/)).not.toBeInTheDocument();
-    expect(wrongPinsInARow()).toBe('0');
+    await user.click(screen.getByRole('button', { name: 'Try PIN again' }));
+    for (let i = 0; i < 3; i++) await enterPin(user, '1111');
+    expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
+    await enterPin(user, '1111');
+    expect(await screen.findByRole('heading', { name: 'Need a hand?' })).toBeInTheDocument();
   });
 
   it('accepts digits from a physical keyboard', async () => {
@@ -157,7 +153,7 @@ describe('simulated lock screen', () => {
     expect(screen.getByRole('img', { name: '3 of 4 numbers entered' })).toBeInTheDocument();
     await user.keyboard('4');
     await waitFor(() => expect(screen.queryByText(/Checking/)).not.toBeInTheDocument());
-    expect(wrongPinsInARow()).toBe('1');
+    expect(screen.getByRole('status')).toHaveTextContent("That PIN didn't match");
   });
 
   it('a correct PIN resets the count and opens the daily companion', async () => {
@@ -166,7 +162,9 @@ describe('simulated lock screen', () => {
     await enterPin(user, '2222');
     await enterPin(user, SAMPLE_PIN);
     expect(await screen.findByRole('heading', { name: /Good (morning|afternoon|evening), Peggy/ })).toBeInTheDocument();
-    expect(wrongPinsInARow()).toBe('0');
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    for (let i = 0; i < 3; i++) await enterPin(user, '1111');
+    expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
   });
 });
 
@@ -246,7 +244,6 @@ describe('daily companion', () => {
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
     await user.click(screen.getByRole('button', { name: 'Lock' }));
     expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
-    expect(wrongPinsInARow()).toBe('0');
     goToHash('/home');
     expect(screen.queryByText(/Elm Street/)).not.toBeInTheDocument();
   });
@@ -349,10 +346,6 @@ describe('background music', () => {
     return ctx;
   }
 
-  function musicStatus(): string {
-    return screen.getByText('Background music', { selector: 'dt' }).nextElementSibling?.textContent ?? '';
-  }
-
   it('starts by itself after unlock and is controlled from the top-right corner', async () => {
     const play = vi.spyOn(HTMLMediaElement.prototype, 'play');
     try {
@@ -363,7 +356,6 @@ describe('background music', () => {
       // Top right: the last button in the top bar, after Get help.
       expect(corner.closest('.topbar-right')?.lastElementChild).toBe(corner);
       expect(play.mock.instances.some((el) => (el as unknown as HTMLMediaElement).src.startsWith('blob:'))).toBe(true);
-      expect(musicStatus()).toBe('Playing');
 
       await user.click(corner);
       const dialog = screen.getByRole('dialog', { name: 'Music' });
@@ -373,7 +365,6 @@ describe('background music', () => {
       await user.click(within(dialog).getByRole('button', { name: 'Pause music' }));
       expect(within(dialog).getByRole('button', { name: 'Play music' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Background music paused: The Riverside Waltz' })).toBeInTheDocument();
-      expect(musicStatus()).toBe('Paused');
 
       await user.click(within(dialog).getByRole('button', { name: 'Next song' }));
       expect(within(dialog).getByText("Peggy's lullaby")).toBeInTheDocument();
@@ -395,13 +386,11 @@ describe('background music', () => {
     await user.click(screen.getByRole('button', { name: /^You/ }));
     await user.click(screen.getByRole('button', { name: "Play Sam's message" }));
     expect(screen.getByRole('button', { name: 'Background music paused for now: The Riverside Waltz' })).toBeInTheDocument();
-    expect(musicStatus()).toBe('Paused for another sound');
     await user.click(screen.getByRole('button', { name: 'Stop' }));
     expect(await screen.findByRole('button', { name: 'Background music playing: The Riverside Waltz' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
     await user.click(screen.getByRole('button', { name: 'Lock' }));
-    expect(musicStatus()).toBe('Off while locked');
     expect(screen.queryByRole('button', { name: /Background music/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Get help' }));
     await user.click(screen.getByRole('button', { name: /^Family/ }));
@@ -411,7 +400,6 @@ describe('background music', () => {
     // A message ending while locked doesn't bring the music back.
     await user.click(screen.getByRole('button', { name: "Play Maya's message" }));
     await user.click(screen.getByRole('button', { name: 'Stop' }));
-    expect(musicStatus()).toBe('Off while locked');
 
     goToHash('/lock');
     await user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
@@ -810,5 +798,41 @@ describe('backup and restore', () => {
     expect(screen.queryByText(/No backup yet/)).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Settings and reset/ }));
     expect(screen.queryByRole('button', { name: 'Save a backup' })).not.toBeInTheDocument();
+  });
+});
+
+describe('real-use presentation', () => {
+  it('shows no presenter notes or demo phone frame', async () => {
+    await renderFresh();
+    expect(screen.queryByText('Working prototype')).not.toBeInTheDocument();
+    expect(screen.queryByText('Demo phone')).not.toBeInTheDocument();
+  });
+
+  it('marks the sample family on unlocked screens; Start setting up for real clears it', async () => {
+    const { user, backend } = await renderApp();
+    expect(screen.queryByText(/Nothing here is real/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
+    await screen.findByRole('heading', { name: /Good/ });
+    expect(screen.getByText('Sample family. Nothing here is real.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Start setting up for real' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove the sample family' }));
+    expect(await screen.findByRole('heading', { name: 'Choose a helper PIN' })).toBeInTheDocument();
+    expect(await backend.getAll('contacts')).toEqual([]);
+  });
+
+  it('Settings no longer offers demo calls or the demo profile', async () => {
+    const { user } = await unlockToSetup();
+    await user.click(screen.getByRole('button', { name: /Settings and reset/ }));
+    expect(screen.queryByText(/Demo call \(recommended/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Restore the demo profile/ })).not.toBeInTheDocument();
+  });
+
+  it('Before unlock says when the lock is off', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user, { pin: null });
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /Before unlock/ }));
+    expect(screen.getByText(/The lock is off, so nothing here is used right now/)).toBeInTheDocument();
   });
 });

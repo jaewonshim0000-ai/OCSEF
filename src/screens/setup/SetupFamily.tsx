@@ -267,7 +267,7 @@ export function SetupContact({ contactId }: { contactId: string }) {
         />
         <Notice icon={Lock}>
           {data.prefs.callMode === 'demo'
-            ? 'Calls are set to Demo call: the button shows who would be called and nobody is phoned. '
+            ? 'In the sample family, the call button shows who would be called and nobody is phoned. '
             : 'Calls open the phone’s own dialer. '}
           On a real phone, calling from the lock screen can show this number in the phone’s dialer. The number is never
           shown on the help screen itself.
