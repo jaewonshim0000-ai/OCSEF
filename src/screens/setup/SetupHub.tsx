@@ -29,7 +29,7 @@ export function SetupHub() {
       label: 'Before unlock',
       hint: isPreviewEmpty(preview) ? 'Nothing is shown before unlock' : `${shownCount} ${shownCount === 1 ? 'item is' : 'items are'} shown before unlock`,
     },
-    { path: '/setup/settings', Icon: Settings, label: 'Settings and reset', hint: 'Text size, Read aloud, calls, reset' },
+    { path: '/setup/settings', Icon: Settings, label: 'Settings and reset', hint: 'Text size, Read aloud, lock, backup, reset' },
   ];
 
   return (
