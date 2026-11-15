@@ -58,8 +58,10 @@ public class LockHelpPlugin extends Plugin {
 
     @PluginMethod
     public void isOverLock(PluginCall call) {
-        KeyguardManager keyguard = getContext().getSystemService(KeyguardManager.class);
-        boolean overLock = getActivity() instanceof LockHelpActivity && keyguard != null && keyguard.isKeyguardLocked();
+        // Fail closed: inside LockHelpActivity always means over-lock, even if the phone was
+        // unlocked while the page loaded (the activity can still show over the lock screen later).
+        // Tapping the notification on an unlocked phone never gets here: onCreate opens the main app.
+        boolean overLock = getActivity() instanceof LockHelpActivity;
         JSObject result = new JSObject();
         result.put("overLock", overLock);
         call.resolve(result);

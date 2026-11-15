@@ -31,6 +31,14 @@ public class LockHelpActivity extends BridgeActivity {
         }
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Never keep a help screen around: the next tap starts fresh, with current data
+        // (e.g. items the helper has since hidden) and a fresh lock check in onCreate.
+        if (!isChangingConfigurations()) finish();
+    }
+
     static void openMainApp(Activity from) {
         Intent intent = new Intent(from, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
