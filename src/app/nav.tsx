@@ -1,8 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { stopAllPlayback } from '../lib/playback';
 import { resolveRoute, type Route } from '../lib/router';
-import { SAMPLE_PIN } from '../lib/seed';
-import { initialSession, relock, submitPin, type LockSession, type PinOutcome } from '../lib/session';
+import { verifyPin } from '../lib/pin';
+import {
+  initialSession,
+  isCompleteEntry,
+  relock,
+  submitPin,
+  RELOCK_AFTER_MS,
+  type LockSession,
+  type PinOutcome,
+} from '../lib/session';
+import { useStore } from '../lib/store';
 
 export type Flash = 'auto-help' | 'private' | null;
 
@@ -12,7 +21,7 @@ export interface Nav {
   flash: Flash;
   navigate(path: string, opts?: { replace?: boolean; flash?: Flash }): void;
   back(fallback: string): void;
-  submitPin(entry: string): PinOutcome;
+  submitPin(entry: string): Promise<PinOutcome>;
   lock(): void;
 }
 
@@ -35,10 +44,11 @@ function writeHash(path: string, replace: boolean) {
 }
 
 /**
- * Holds the in-memory demo session and the hash route. On every page load the
- * route is reset to the keypad, so refreshing starts a new simulated session.
+ * Holds the in-memory lock session and the hash route. On every page load the
+ * route is reset to the keypad, so refreshing starts a new session.
  */
 export function NavProvider({ children }: { children: ReactNode }) {
+  const { snapshot } = useStore();
   const sessionRef = useRef<LockSession>(initialSession());
   const [session, setSessionState] = useState<LockSession>(sessionRef.current);
   const [route, setRoute] = useState<Route>(() => resolveRoute('/lock', false).route);
@@ -87,21 +97,41 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const back = useCallback<Nav['back']>((fallback) => apply(fallback, 'push', null), [apply]);
 
   const doSubmit = useCallback<Nav['submitPin']>(
-    (entry) => {
-      const result = submitPin(sessionRef.current, entry, entry === SAMPLE_PIN);
-      if (result.outcome === 'incomplete') return result.outcome;
+    async (entry) => {
+      if (!isCompleteEntry(entry)) return 'incomplete';
+      const pin = snapshot().security.personPin;
+      const matched = pin ? await verifyPin(entry, pin).catch(() => false) : false;
+      const result = submitPin(sessionRef.current, entry, matched);
       setSession(result.session);
       if (result.outcome === 'unlocked') apply('/today', 'push', null);
       else if (result.outcome === 'invalid-open-help') apply('/help', 'push', 'auto-help');
       return result.outcome;
     },
-    [apply, setSession],
+    [apply, setSession, snapshot],
   );
 
   const lock = useCallback(() => {
     setSession(relock());
     apply('/lock', 'push', null);
   }, [apply, setSession]);
+
+  // Lock again after RELOCK_AFTER_MS in the background, when the lock is on.
+  useEffect(() => {
+    let hiddenAt: number | null = null;
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now();
+        return;
+      }
+      const away = hiddenAt === null ? 0 : Date.now() - hiddenAt;
+      hiddenAt = null;
+      if (away < RELOCK_AFTER_MS) return;
+      const d = snapshot();
+      if (d.setup.mode !== 'new' && d.security.lockEnabled && sessionRef.current.unlocked) lock();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [lock, snapshot]);
 
   const value = useMemo<Nav>(
     () => ({ route, session, flash, navigate, back, submitPin: doSubmit, lock }),
