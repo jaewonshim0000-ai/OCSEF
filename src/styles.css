@@ -2283,3 +2283,54 @@ div.photo-hotspot {
   font-weight: 700;
   line-height: 1.35;
 }
+
+/* ---------- "I need…" board ---------- */
+
+.need-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.need-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 8rem;
+  padding: 12px;
+  border-radius: 20px;
+  border: 3px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.need-button:active {
+  background: var(--home-bg);
+}
+
+.need-shown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0 8px;
+  text-align: center;
+}
+
+.need-shown h1 {
+  font-size: 2.75rem;
+  line-height: 1.15;
+}
+
+.wide-tile-needs {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}

@@ -18,6 +18,7 @@ export type RouteName =
   | 'music'
   | 'setup'
   | 'welcome'
+  | 'needs'
   | 'start'
   | 'not-found';
 
@@ -38,7 +39,7 @@ export interface Route {
 const TILES: readonly TileId[] = ['home', 'family', 'you', 'routine'];
 
 /** Routes that may render while Familiar Place is locked. */
-const LOCKED_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>(['lock', 'help', 'locked-tile', 'locked-call']);
+const LOCKED_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>(['lock', 'help', 'locked-tile', 'locked-call', 'needs']);
 
 export function isLockedSafe(name: RouteName): boolean {
   return LOCKED_ROUTES.has(name);
@@ -58,6 +59,8 @@ export function parseRoute(rawPath: string): Route {
   switch (a) {
     case 'lock':
       return parts.length === 1 ? { ...base, name: 'lock' } : { ...base, name: 'not-found' };
+    case 'needs':
+      return parts.length === 1 ? { ...base, name: 'needs' } : { ...base, name: 'not-found' };
     case 'welcome':
       return parts.length === 1 ? { ...base, name: 'welcome' } : { ...base, name: 'not-found' };
     case 'start':

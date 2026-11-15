@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Images, Lock, Music, Play, Settings } from 'lucide-react';
+import { Check, ChevronRight, Images, Lock, MessageSquareText, Music, Play, Settings } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { TileGrid } from '../../components/TileGrid';
 import { Button, Heading, Notice, Screen, TopBar } from '../../components/ui';
@@ -94,6 +94,15 @@ export function Today() {
         <span className="wide-tile-text">
           <span className="wide-tile-label">Music</span>
           <span className="wide-tile-hint">Songs I love</span>
+        </span>
+        <ChevronRight size={28} strokeWidth={2.5} aria-hidden />
+      </button>
+
+      <button type="button" className="wide-tile wide-tile-needs" onClick={() => navigate('/needs?from=today')}>
+        <MessageSquareText size={36} strokeWidth={2.25} aria-hidden />
+        <span className="wide-tile-text">
+          <span className="wide-tile-label">I need…</span>
+          <span className="wide-tile-hint">Show or say how you feel</span>
         </span>
         <ChevronRight size={28} strokeWidth={2.5} aria-hidden />
       </button>

@@ -1112,3 +1112,34 @@ describe("today's note", () => {
     expect(screen.queryByText('Maya is coming at 11.')).not.toBeInTheDocument();
   });
 });
+
+describe('"I need…" board', () => {
+  it('opens from Today and shows a need full screen', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: /I need/ }));
+    expect(screen.getByRole('heading', { name: 'I need…' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: "I'm cold" }));
+    expect(screen.getByRole('heading', { name: "I'm cold" })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to the list' }));
+    expect(screen.getByRole('button', { name: 'I need the toilet' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
+    expect(screen.getByRole('heading', { name: /Good/ })).toBeInTheDocument();
+  });
+
+  it('works from the locked help screen without unlocking', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    await user.click(screen.getByRole('button', { name: 'Get help' }));
+    await user.click(screen.getByRole('button', { name: /I need/ }));
+    await user.click(screen.getByRole('button', { name: "It's too loud" }));
+    expect(screen.getByRole('heading', { name: "It's too loud" })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to the list' }));
+    await user.click(screen.getByRole('button', { name: 'Back to help' }));
+    expect(screen.getByRole('heading', { name: 'Need a hand?' })).toBeInTheDocument();
+    // Still locked.
+    goToHash('/today');
+    expect(screen.queryByRole('heading', { name: /Good/ })).not.toBeInTheDocument();
+  });
+});

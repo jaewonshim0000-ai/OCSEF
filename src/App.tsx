@@ -32,6 +32,8 @@ import { SetupSettings } from './screens/setup/SetupSettings';
 import { SetupWizard } from './screens/start/SetupWizard';
 import { Welcome } from './screens/start/Welcome';
 import { TodayNoteCard } from './components/TodayNote';
+import { MessageSquareText } from 'lucide-react';
+import { NeedsBoard } from './screens/NeedsBoard';
 
 export function App({ backend, loader }: { backend?: Backend; loader?: DemoMediaLoader }) {
   return (
@@ -116,6 +118,7 @@ function LockedLive({ screen }: { screen: LockedScreenId }) {
       screen={screen}
       flash={flash}
       go={(s) => navigate(s === 'help' ? '/help' : `/help/${s}`)}
+      openPath={navigate}
       // Over the phone's lock screen, "Try PIN again" asks the phone to unlock.
       onTryPin={overLock ? () => void requestUnlock() : () => navigate('/lock')}
     />
@@ -130,6 +133,9 @@ function HelpUnlocked() {
       <Heading sub="Choose one.">Need a hand?</Heading>
       <TodayNoteCard note={data.schedule.note} />
       <TileGrid onOpen={(tile) => navigate(`/${tile}?from=help`)} />
+      <Button icon={MessageSquareText} onClick={() => navigate('/needs?from=help')}>
+        I need…
+      </Button>
     </Screen>
   );
 }
@@ -178,6 +184,8 @@ function ScreenSwitch() {
       return data.prefs.callMode === 'demo' ? <DemoCall /> : <ContactDetail />;
     case 'you':
       return <YouFull />;
+    case 'needs':
+      return <NeedsBoard />;
     case 'routine':
       return <RoutineFull />;
     case 'routine-play':

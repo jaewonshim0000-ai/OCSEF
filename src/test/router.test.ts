@@ -106,3 +106,12 @@ describe('first run routing', () => {
     }
   });
 });
+
+describe('the "I need…" board', () => {
+  it('parses /needs and keeps it while locked', () => {
+    expect(parseRoute('/needs').name).toBe('needs');
+    expect(parseRoute('/needs/x').name).toBe('not-found');
+    expect(resolveRoute('/needs', false).route.name).toBe('needs');
+    expect(resolveRoute('/needs?from=today', true).route.name).toBe('needs');
+  });
+});

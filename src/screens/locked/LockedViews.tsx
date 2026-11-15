@@ -1,4 +1,4 @@
-import { ArrowLeft, KeyRound, Lock, Phone, PhoneOff, Users } from 'lucide-react';
+import { ArrowLeft, KeyRound, Lock, MessageSquareText, Phone, PhoneOff, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { MusicCornerScope } from '../../app/music';
 import type { Flash } from '../../app/nav';
@@ -29,6 +29,8 @@ export interface LockedProps {
   flash?: Flash;
   /** In the setup preview, a call never leaves the app, even in phone mode. */
   previewMode?: boolean;
+  /** Opens another screen that is safe while locked (the "I need…" board, the help card). */
+  openPath?: (path: string) => void;
 }
 
 export function LockedExperience(props: LockedProps) {
@@ -66,7 +68,7 @@ function LockedStatus() {
   );
 }
 
-function LockedHelp({ preview, go, onTryPin, flash }: LockedProps) {
+function LockedHelp({ preview, go, onTryPin, flash, openPath }: LockedProps) {
   return (
     <Screen top={<LockedStatus />} label="Get help">
       <Heading sub="Choose one.">Need a hand?</Heading>
@@ -80,6 +82,11 @@ function LockedHelp({ preview, go, onTryPin, flash }: LockedProps) {
       ) : null}
       <TodayNoteCard note={preview.note} />
       <TileGrid onOpen={go} />
+      {openPath ? (
+        <Button icon={MessageSquareText} onClick={() => openPath('/needs')}>
+          I need…
+        </Button>
+      ) : null}
       {onTryPin ? (
         <Button icon={KeyRound} onClick={onTryPin}>
           Try PIN again
