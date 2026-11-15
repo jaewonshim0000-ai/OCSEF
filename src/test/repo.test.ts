@@ -35,7 +35,7 @@ describe('IndexedDB storage', () => {
     const backend = await freshIdb();
     const first = await loadAppData(backend);
     expect(first.setup).toEqual({ mode: 'new', wizardStep: 1, lastBackupAt: null });
-    expect(first.security).toEqual({ personPin: null, helperPin: null, lockEnabled: true });
+    expect(first.security).toEqual({ personPin: null, helperPin: null, lockEnabled: true, lockHelp: true });
     // Sudden sound can unsettle; a helper turns background music on in Helper setup.
     expect(first.prefs.backgroundMusic).toBe(false);
     expect(first.profile.preferredName).toBe('');
@@ -136,6 +136,8 @@ describe('database upgrade', () => {
     const backend = new IdbBackend(await openIdb(factory));
     const data = await loadAppData(backend);
     expect(data.profile.preferredName).toBe('Ada');
+    // Saved before lock-screen help existed: it gets the default.
+    expect(data.security.lockHelp).toBe(true);
     expect(data.contacts.map((c) => c.name)).toEqual(['Lee']);
     // Contacts saved before voice messages existed get an empty message.
     expect(data.contacts[0].voice).toBeNull();

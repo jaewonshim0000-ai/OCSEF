@@ -1,10 +1,11 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { MusicCornerScope, MusicProvider } from './app/music';
 import { NavProvider, useNav } from './app/nav';
 import { RestoreDialog } from './components/RestoreDialog';
 import { SampleBanner } from './components/SampleBanner';
 import { Button, Heading, Screen, TopBar } from './components/ui';
 import { TileGrid } from './components/TileGrid';
+import { lockHelpAvailable, requestUnlock, setLockHelp } from './lib/lockHelp';
 import { isLockedSafe } from './lib/router';
 import { StoreProvider, useStore } from './lib/store';
 import type { Backend } from './lib/db';
@@ -43,9 +44,25 @@ export function App({ backend, loader }: { backend?: Backend; loader?: DemoMedia
   );
 }
 
+/** Keeps the Android lock-screen notification in step with the saved setting. */
+function useLockHelpSync() {
+  const { ready, data, save, snapshot } = useStore();
+  const applied = useRef<boolean | null>(null);
+  const want = data.setup.mode === 'real' && data.security.lockHelp;
+  useEffect(() => {
+    if (!ready || !lockHelpAvailable() || applied.current === want) return;
+    applied.current = want;
+    void setLockHelp(want).then((showing) => {
+      // Notifications were refused: show the switch as off, so Settings can explain.
+      if (want && !showing) save({ security: { ...snapshot().security, lockHelp: false } }).catch(() => undefined);
+    });
+  }, [ready, want, save, snapshot]);
+}
+
 function Shell() {
   const { ready, data } = useStore();
   const { route, session } = useNav();
+  useLockHelpSync();
 
   useEffect(() => {
     document.documentElement.dataset.textSize = data.prefs.textSize;
@@ -91,14 +108,15 @@ function Loading() {
 
 function LockedLive({ screen }: { screen: LockedScreenId }) {
   const { preview } = useStore();
-  const { navigate, flash } = useNav();
+  const { navigate, flash, overLock } = useNav();
   return (
     <LockedExperience
       preview={preview}
       screen={screen}
       flash={flash}
       go={(s) => navigate(s === 'help' ? '/help' : `/help/${s}`)}
-      onTryPin={() => navigate('/lock')}
+      // Over the phone's lock screen, "Try PIN again" asks the phone to unlock.
+      onTryPin={overLock ? () => void requestUnlock() : () => navigate('/lock')}
     />
   );
 }

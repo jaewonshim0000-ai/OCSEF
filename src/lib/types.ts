@@ -190,6 +190,8 @@ export interface Security {
   /** Null only in 'new' mode before wizard step 1, and in 'sample' mode. */
   helperPin: PinHash | null;
   lockEnabled: boolean;
+  /** Android: show "Tap for help" on the phone's lock screen (real mode only). */
+  lockHelp: boolean;
 }
 
 export type AppMode = 'new' | 'sample' | 'real';

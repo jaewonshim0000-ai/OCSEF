@@ -8,6 +8,27 @@ import { collectBackup, seedSample, type DemoMediaLoader } from '../lib/repo';
 import { DEMO_MEDIA, SAMPLE_PIN } from '../lib/seed';
 import type { MediaRecord } from '../lib/types';
 
+// The Android lock-screen plugin. By default it behaves like a browser (not available).
+const lockHelp = vi.hoisted(() => ({
+  available: false,
+  overLock: false,
+  grant: true,
+  setLockHelp: vi.fn(),
+  requestUnlock: vi.fn(),
+}));
+vi.mock('../lib/lockHelp', () => ({
+  lockHelpAvailable: () => lockHelp.available,
+  isOverLock: () => Promise.resolve(lockHelp.overLock),
+  setLockHelp: (enabled: boolean) => {
+    lockHelp.setLockHelp(enabled);
+    return Promise.resolve(enabled && lockHelp.grant);
+  },
+  requestUnlock: () => {
+    lockHelp.requestUnlock();
+    return Promise.resolve();
+  },
+}));
+
 const loader: DemoMediaLoader = async (backend) => {
   const ids = new Set<string>();
   for (const [id, { mime }] of Object.entries(DEMO_MEDIA)) {
@@ -937,5 +958,65 @@ describe('recording', () => {
     await user.click(await screen.findByRole('button', { name: /About you/ }));
     await user.click(screen.getByRole('button', { name: 'Record' }));
     expect(await screen.findByText(/Allow the microphone for this site in the browser's settings/)).toBeInTheDocument();
+  });
+});
+
+describe('lock-screen help (Android)', () => {
+  afterEach(() => {
+    Object.assign(lockHelp, { available: false, overLock: false, grant: true });
+    lockHelp.setLockHelp.mockClear();
+    lockHelp.requestUnlock.mockClear();
+  });
+
+  it('turns on for a real profile once setup finishes', async () => {
+    lockHelp.available = true;
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await waitFor(() => expect(lockHelp.setLockHelp).toHaveBeenLastCalledWith(true));
+  });
+
+  it('stays off for the sample family', async () => {
+    lockHelp.available = true;
+    await renderApp();
+    await waitFor(() => expect(lockHelp.setLockHelp).toHaveBeenCalledWith(false));
+    expect(lockHelp.setLockHelp).not.toHaveBeenCalledWith(true);
+  });
+
+  it('can be switched off, and turns itself back off if notifications are refused', async () => {
+    lockHelp.available = true;
+    lockHelp.grant = false;
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /Settings and reset/ }));
+    const toggle = () => screen.getByRole('switch', { name: 'Get help from the lock screen' });
+    // Notifications were refused right after setup, so it is off, with a note saying why.
+    await waitFor(() => expect(toggle()).toHaveAttribute('aria-checked', 'false'));
+    expect(screen.getByText(/allow notifications for Familiar Place in the phone's settings/)).toBeInTheDocument();
+    lockHelp.grant = true;
+    await user.click(toggle());
+    await waitFor(() => expect(toggle()).toHaveAttribute('aria-checked', 'true'));
+    expect(lockHelp.setLockHelp).toHaveBeenLastCalledWith(true);
+    await user.click(toggle());
+    await waitFor(() => expect(lockHelp.setLockHelp).toHaveBeenLastCalledWith(false));
+  });
+
+  it('over the lock screen, shows only help, even when the in-app lock is off', async () => {
+    const { user, backend } = await renderFresh();
+    await quickSetup(user, { pin: null });
+    cleanup();
+    lockHelp.overLock = true;
+    render(<App backend={backend} loader={loader} />);
+    expect(await screen.findByRole('heading', { name: 'Need a hand?' })).toBeInTheDocument();
+    for (const path of ['/today', '/lock', '/setup', '/family']) {
+      goToHash(path);
+      expect(screen.queryByRole('heading', { name: /Good/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Enter PIN' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Helper setup' })).not.toBeInTheDocument();
+    }
+    goToHash('/help');
+    await user.click(screen.getByRole('button', { name: 'Try PIN again' }));
+    expect(lockHelp.requestUnlock).toHaveBeenCalled();
   });
 });

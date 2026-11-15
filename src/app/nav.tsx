@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { stopAllPlayback } from '../lib/playback';
 import { resolveRoute, type Route } from '../lib/router';
+import { isOverLock } from '../lib/lockHelp';
 import { verifyPin } from '../lib/pin';
 import {
   helperAttempt,
@@ -34,6 +35,8 @@ export interface Nav {
   checkHelperPin(entry: string): Promise<'ok' | 'wrong' | 'wait'>;
   /** Starts a fresh session at the right first screen for the saved data. */
   restart(opts?: { unlocked?: boolean; flash?: Flash }): void;
+  /** Android: this copy of the app was opened over the phone's lock screen, so only help shows. */
+  overLock: boolean;
 }
 
 const NavContext = createContext<Nav | null>(null);
@@ -64,6 +67,8 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const [session, setSessionState] = useState<LockSession>(sessionRef.current);
   const [route, setRoute] = useState<Route>(() => resolveRoute('/lock', false).route);
   const [flash, setFlash] = useState<Flash>(null);
+  const overLockRef = useRef(false);
+  const [overLock, setOverLock] = useState(false);
   const gateRef = useRef<HelperGate>(initialHelperGate());
   const [gate, setGateState] = useState<HelperGate>(gateRef.current);
   const setGate = useCallback((g: HelperGate) => {
@@ -95,7 +100,11 @@ export function NavProvider({ children }: { children: ReactNode }) {
 
   const apply = useCallback(
     (path: string, mode: 'push' | 'replace' | 'none', nextFlash: Flash) => {
-      const resolution = resolveRoute(path, sessionRef.current.unlocked, snapshot().setup.mode);
+      const over = overLockRef.current;
+      const appMode = snapshot().setup.mode;
+      let resolution = resolveRoute(path, sessionRef.current.unlocked && !over, appMode);
+      // Over the phone's lock screen the keypad never shows: help is the only way in.
+      if (over && resolution.route.name === 'lock') resolution = resolveRoute('/help', false, appMode);
       const finalPath = resolution.route.path;
       if (mode !== 'none' || finalPath !== path) {
         writeHash(finalPath, mode === 'replace' || mode === 'none');
@@ -131,7 +140,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
 
   const doSubmit = useCallback<Nav['submitPin']>(
     async (entry) => {
-      if (!isCompleteEntry(entry)) return 'incomplete';
+      if (overLockRef.current || !isCompleteEntry(entry)) return 'incomplete';
       const pin = snapshot().security.personPin;
       const matched = pin ? await verifyPin(entry, pin).catch(() => false) : false;
       const result = submitPin(sessionRef.current, entry, matched);
@@ -154,9 +163,10 @@ export function NavProvider({ children }: { children: ReactNode }) {
       setGate(initialHelperGate());
       const d = snapshot();
       const isNew = d.setup.mode === 'new';
-      const unlocked = !isNew && (opts?.unlocked ?? !d.security.lockEnabled);
+      const over = overLockRef.current;
+      const unlocked = !isNew && !over && (opts?.unlocked ?? !d.security.lockEnabled);
       setSession({ ...initialSession(), unlocked });
-      const path = isNew ? ((d.setup.wizardStep ?? 1) > 1 ? '/start' : '/welcome') : unlocked ? '/today' : '/lock';
+      const path = isNew ? ((d.setup.wizardStep ?? 1) > 1 ? '/start' : '/welcome') : unlocked ? '/today' : over ? '/help' : '/lock';
       apply(path, 'replace', opts?.flash ?? null);
     },
     [apply, setGate, setSession, snapshot],
@@ -167,7 +177,11 @@ export function NavProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || started.current) return;
     started.current = true;
-    restart();
+    void isOverLock().then((over) => {
+      overLockRef.current = over;
+      setOverLock(over);
+      restart();
+    });
   }, [ready, restart]);
 
   // Lock again after RELOCK_AFTER_MS in the background, when the lock is on.
@@ -202,8 +216,9 @@ export function NavProvider({ children }: { children: ReactNode }) {
       isHelperOpen,
       helperWaitUntil: gate.waitUntil,
       checkHelperPin,
+      overLock,
     }),
-    [route, session, flash, navigate, back, doSubmit, lock, restart, isHelperOpen, gate, checkHelperPin],
+    [route, session, flash, navigate, back, doSubmit, lock, restart, isHelperOpen, gate, checkHelperPin, overLock],
   );
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }

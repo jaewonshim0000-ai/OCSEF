@@ -258,7 +258,7 @@ export function demoAppData(): AppData {
     },
     prefs: { textSize: 'standard', readAloud: true, callMode: 'demo', backgroundMusic: true },
     // seedSample replaces personPin with a hash of SAMPLE_PIN.
-    security: { personPin: null, helperPin: null, lockEnabled: true },
+    security: { personPin: null, helperPin: null, lockEnabled: true, lockHelp: true },
     setup: { mode: 'sample', wizardStep: null, lastBackupAt: null },
   };
 }

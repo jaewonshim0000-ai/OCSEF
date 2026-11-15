@@ -114,7 +114,7 @@ export async function writeAll(backend: Backend, data: AppData): Promise<void> {
 }
 
 async function sampleSecurity(): Promise<Security> {
-  return { personPin: await hashPin(SAMPLE_PIN), helperPin: null, lockEnabled: true };
+  return { personPin: await hashPin(SAMPLE_PIN), helperPin: null, lockEnabled: true, lockHelp: true };
 }
 
 /** Deletes everything, then loads the fictional sample family. */

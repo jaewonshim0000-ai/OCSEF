@@ -24,7 +24,7 @@ async function realBackend(): Promise<{ backend: MemoryBackend; data: AppData }>
   const data: AppData = {
     ...sample,
     setup: { mode: 'real', wizardStep: null, lastBackupAt: null },
-    security: { personPin: await hashPin('1357'), helperPin: await hashPin('246810'), lockEnabled: true },
+    security: { personPin: await hashPin('1357'), helperPin: await hashPin('246810'), lockEnabled: true, lockHelp: true },
   };
   await backend.write(writesFor(data, ['security', 'setup']));
   return { backend, data };

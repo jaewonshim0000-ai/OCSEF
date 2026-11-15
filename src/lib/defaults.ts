@@ -1,7 +1,7 @@
 import type { AppData, Approvals, Place, Prefs, Profile, Schedule, Security, SetupState } from './types';
 
 export function emptySecurity(): Security {
-  return { personPin: null, helperPin: null, lockEnabled: true };
+  return { personPin: null, helperPin: null, lockEnabled: true, lockHelp: true };
 }
 
 export function newSetup(): SetupState {

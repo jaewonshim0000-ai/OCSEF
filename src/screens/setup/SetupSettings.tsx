@@ -7,6 +7,7 @@ import { RestoreDialog } from '../../components/RestoreDialog';
 import { Switch } from '../../components/Switch';
 import { Button, Card, Notice } from '../../components/ui';
 import { isStoragePersisted } from '../../lib/db';
+import { lockHelpAvailable } from '../../lib/lockHelp';
 import { hashPin } from '../../lib/pin';
 import { speechAvailable } from '../../lib/playback';
 import { formatDate } from '../../lib/schedule';
@@ -117,6 +118,18 @@ export function SetupSettings() {
               <Button size="md" icon={KeyRound} onClick={() => setPinDialog('person')}>
                 Change their PIN
               </Button>
+            ) : null}
+            {lockHelpAvailable() ? (
+              <Switch
+                label="Get help from the lock screen"
+                description={
+                  security.lockHelp
+                    ? 'A quiet “Tap for help” notification on the phone’s lock screen opens help without unlocking. It shows only what is chosen in Before unlock.'
+                    : "If this won't stay on, allow notifications for Familiar Place in the phone's settings."
+                }
+                checked={security.lockHelp}
+                onChange={(on) => void saveSecurity({ lockHelp: on })}
+              />
             ) : null}
           </>
         )}
