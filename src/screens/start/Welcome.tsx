@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { UserPlus, Users } from 'lucide-react';
+import { Upload, UserPlus, Users } from 'lucide-react';
 import { useNav } from '../../app/nav';
+import { RestoreDialog } from '../../components/RestoreDialog';
 import { Button, Heading, Notice, Screen, Stack } from '../../components/ui';
 import { useStore } from '../../lib/store';
 
@@ -10,6 +11,7 @@ export function Welcome() {
   const { navigate, restart } = useNav();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
 
   const sample = async () => {
     setBusy(true);
@@ -36,8 +38,12 @@ export function Welcome() {
         <Button icon={Users} onClick={sample} disabled={busy}>
           {busy ? 'Loading the sample family…' : 'Look around with a sample family'}
         </Button>
+        <Button icon={Upload} onClick={() => setRestoring(true)}>
+          Restore from a backup
+        </Button>
       </Stack>
       <p className="muted">Everything stays on this phone. Nothing is uploaded.</p>
+      {restoring ? <RestoreDialog confirmReplace={false} onClose={() => setRestoring(false)} onRestored={() => restart()} /> : null}
     </Screen>
   );
 }

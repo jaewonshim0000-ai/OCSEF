@@ -12,6 +12,10 @@ export function SetupHub() {
   const [previewing, setPreviewing] = useState(false);
   const shownCount = countShown(preview);
 
+  const last = data.setup.lastBackupAt;
+  const MONTH = 30 * 24 * 60 * 60 * 1000;
+  const stale = data.setup.mode === 'real' && (last === null || Date.now() - last > MONTH);
+
   const items = [
     { path: '/setup/you', Icon: UserRound, label: 'About you', hint: 'Name, photo, introduction, voice message' },
     { path: '/setup/home', Icon: House, label: 'Home', hint: 'Home photo, address, familiar places' },
@@ -35,10 +39,15 @@ export function SetupHub() {
       backPath="/today"
       backLabel="Back to Today"
     >
-      <Notice tone="warn">
-        Demo only: the pretend PIN is not real security. A real app would ask for the phone's own passcode or Face ID
-        before anyone could change these settings.
-      </Notice>
+      {stale ? (
+        <Notice tone="warn">
+          {last === null ? 'No backup yet.' : 'The last backup is more than a month old.'} Familiar Place keeps
+          everything on this phone only.{' '}
+          <button type="button" className="link-button" onClick={() => navigate('/setup/settings')}>
+            Back up now
+          </button>
+        </Notice>
+      ) : null}
       <nav className="stack stack-sm" aria-label="Setup sections">
         {items.map(({ path, Icon, label, hint }) => (
           <button key={path} type="button" className="list-button setup-item" onClick={() => navigate(path)}>

@@ -82,6 +82,13 @@ async function quickSetup(
   await screen.findByRole('heading', { name: new RegExp(`Good (morning|afternoon|evening), ${name}`) });
 }
 
+async function unlockToSetup() {
+  const ctx = await renderApp();
+  await ctx.user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
+  await ctx.user.click(await screen.findByRole('button', { name: 'Helper setup' }));
+  return ctx;
+}
+
 function setVisibility(state: 'hidden' | 'visible') {
   Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
   act(() => {
@@ -441,13 +448,6 @@ describe('background music', () => {
 });
 
 describe('setup and consent', () => {
-  async function unlockToSetup() {
-    const ctx = await renderApp();
-    await ctx.user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
-    await ctx.user.click(await screen.findByRole('button', { name: 'Helper setup' }));
-    return ctx;
-  }
-
   it('stopping an item removes it from the locked view immediately', async () => {
     const { user } = await unlockToSetup();
     await user.click(screen.getByRole('button', { name: /Before unlock/ }));
@@ -748,5 +748,67 @@ describe('PIN settings', () => {
     await waitFor(() => expect(screen.getByRole('switch', { name: 'Ask for a PIN to open Familiar Place' })).toHaveAttribute('aria-checked', 'false'));
     goToHash('/today');
     expect(screen.queryByRole('button', { name: 'Lock' })).not.toBeInTheDocument();
+  });
+});
+
+describe('backup and restore', () => {
+  it('saves a password-protected backup and restores it on a new phone', async () => {
+    let saved = null as Blob | null;
+    const realCreate = URL.createObjectURL;
+    const createUrl = vi.spyOn(URL, 'createObjectURL').mockImplementation((obj) => {
+      if (obj instanceof Blob && obj.type === 'application/octet-stream') saved = obj;
+      return realCreate(obj);
+    });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    try {
+      const { user } = await renderFresh();
+      await quickSetup(user);
+      await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+      await enterPin(user, HELPER_PIN);
+      expect(await screen.findByText(/No backup yet/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: /Settings and reset/ }));
+      expect(screen.getByText('Last backup: never')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Save a backup' }));
+      const dialog = screen.getByRole('dialog');
+      await user.type(within(dialog).getByLabelText('Password'), 'short');
+      await user.type(within(dialog).getByLabelText('Type it again'), 'short');
+      await user.click(within(dialog).getByRole('button', { name: 'Save backup' }));
+      expect(within(dialog).getByRole('alert')).toHaveTextContent('at least 8 characters');
+      await user.clear(within(dialog).getByLabelText('Password'));
+      await user.clear(within(dialog).getByLabelText('Type it again'));
+      await user.type(within(dialog).getByLabelText('Password'), 'riverton-2026');
+      await user.type(within(dialog).getByLabelText('Type it again'), 'riverton-2026');
+      await user.click(within(dialog).getByRole('button', { name: 'Save backup' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 4000 });
+      expect(saved).not.toBeNull();
+      expect(click).toHaveBeenCalled();
+      expect(screen.queryByText('Last backup: never')).not.toBeInTheDocument();
+      cleanup();
+
+      // A new phone.
+      const { user: user2 } = await renderFresh(new MemoryBackend());
+      await user2.click(screen.getByRole('button', { name: 'Restore from a backup' }));
+      const restore = screen.getByRole('dialog');
+      await user2.upload(within(restore).getByLabelText('Backup file'), new File([saved!], 'familiar-place-backup.fpbackup'));
+      await user2.type(within(restore).getByLabelText('Backup password'), 'wrong-password');
+      await user2.click(within(restore).getByRole('button', { name: 'Restore' }));
+      expect(await within(restore).findByText("That password didn't open this backup.", {}, { timeout: 4000 })).toBeInTheDocument();
+      await user2.clear(within(restore).getByLabelText('Backup password'));
+      await user2.type(within(restore).getByLabelText('Backup password'), 'riverton-2026');
+      await user2.click(within(restore).getByRole('button', { name: 'Restore' }));
+      expect(await screen.findByRole('heading', { name: 'Enter PIN' }, { timeout: 4000 })).toBeInTheDocument();
+      await enterPin(user2, '1357');
+      expect(await screen.findByRole('heading', { name: /Good .*, Ada/ })).toBeInTheDocument();
+    } finally {
+      createUrl.mockRestore();
+      click.mockRestore();
+    }
+  });
+
+  it('the sample family offers no backup', async () => {
+    const { user } = await unlockToSetup();
+    expect(screen.queryByText(/No backup yet/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Settings and reset/ }));
+    expect(screen.queryByRole('button', { name: 'Save a backup' })).not.toBeInTheDocument();
   });
 });

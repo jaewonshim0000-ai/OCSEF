@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MusicCornerScope, MusicProvider, useMusic } from './app/music';
 import { NavProvider, useNav } from './app/nav';
-import { Heading, Screen, TopBar } from './components/ui';
+import { RestoreDialog } from './components/RestoreDialog';
+import { Button, Heading, Screen, TopBar } from './components/ui';
 import { TileGrid } from './components/TileGrid';
 import { isLockedSafe } from './lib/router';
 import { StoreProvider, useStore } from './lib/store';
@@ -184,11 +185,33 @@ function ScreenSwitch() {
   }
 }
 
+function GateWithRestore() {
+  const { restart } = useNav();
+  const [restoring, setRestoring] = useState(false);
+  return (
+    <>
+      <HelperGate
+        extraForgotActions={(close) => (
+          <Button
+            onClick={() => {
+              close();
+              setRestoring(true);
+            }}
+          >
+            Restore a backup
+          </Button>
+        )}
+      />
+      {restoring ? <RestoreDialog confirmReplace onClose={() => setRestoring(false)} onRestored={() => restart()} /> : null}
+    </>
+  );
+}
+
 function SetupScreens() {
   const { route, isHelperOpen } = useNav();
   const { data } = useStore();
   // The sample family has no helper PIN, so it skips the gate.
-  if (data.setup.mode === 'real' && !isHelperOpen()) return <HelperGate />;
+  if (data.setup.mode === 'real' && !isHelperOpen()) return <GateWithRestore />;
   const id = route.id;
   switch (route.section) {
     case 'you':

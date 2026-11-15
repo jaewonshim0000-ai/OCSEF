@@ -1,16 +1,20 @@
-import { useState } from 'react';
-import { Database, KeyRound, Lock, Phone, RotateCcw, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Archive, Database, Download, KeyRound, Lock, Phone, RotateCcw, Trash2, Upload } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { ChoosePin } from '../../components/ChoosePin';
 import { ConfirmDialog, Modal } from '../../components/Modal';
+import { RestoreDialog } from '../../components/RestoreDialog';
 import { Switch } from '../../components/Switch';
 import { Button, Card, Notice } from '../../components/ui';
+import { isStoragePersisted } from '../../lib/db';
 import { hashPin } from '../../lib/pin';
 import { speechAvailable } from '../../lib/playback';
+import { formatDate } from '../../lib/schedule';
 import { HELPER_PIN_LENGTH, PIN_LENGTH } from '../../lib/session';
 import { useStore } from '../../lib/store';
 import type { CallMode, Prefs, Security, TextSize } from '../../lib/types';
 import { SetupPage } from './common';
+import { SaveBackupDialog } from './SaveBackupDialog';
 
 const SIZES: Array<{ id: TextSize; label: string }> = [
   { id: 'standard', label: 'Standard' },
@@ -28,6 +32,13 @@ export function SetupSettings() {
   const security = data.security;
   const [pinDialog, setPinDialog] = useState<null | 'person' | 'helper'>(null);
   const [done, setDone] = useState<string | null>(null);
+
+  const [backupDialog, setBackupDialog] = useState<null | 'save' | 'restore'>(null);
+  const [kept, setKept] = useState(true);
+  useEffect(() => {
+    isStoragePersisted().then(setKept);
+  }, []);
+  const last = data.setup.lastBackupAt;
 
   const saveSecurity = (patch: Partial<Security>) => save({ security: { ...security, ...patch } });
 
@@ -145,6 +156,21 @@ export function SetupSettings() {
         </div>
       </Card>
 
+      {!sample ? (
+        <Card>
+          <h2 className="card-title">
+            <Archive size={24} strokeWidth={2.5} aria-hidden /> Back up and restore
+          </h2>
+          <p>Last backup: {last ? formatDate(new Date(last)) : 'never'}</p>
+          <Button icon={Download} onClick={() => setBackupDialog('save')}>
+            Save a backup
+          </Button>
+          <Button icon={Upload} onClick={() => setBackupDialog('restore')}>
+            Restore a backup
+          </Button>
+        </Card>
+      ) : null}
+
       <Card>
         <h2 className="card-title">
           <Database size={24} strokeWidth={2.5} aria-hidden /> Your information
@@ -154,6 +180,9 @@ export function SetupSettings() {
             ? 'Everything is kept on this device only. Nothing is uploaded, and nothing is sent automatically.'
             : 'This browser is not letting the app save. Changes last until the page is closed. Nothing is uploaded.'}
         </p>
+        {persistent && !kept ? (
+          <p>This browser may clear Familiar Place's data if the phone runs low on space. Keep a recent backup.</p>
+        ) : null}
         <Button icon={RotateCcw} onClick={() => setConfirm('reset')}>
           Restore the demo profile
         </Button>
@@ -162,6 +191,18 @@ export function SetupSettings() {
         </Button>
       </Card>
 
+      {backupDialog === 'save' ? (
+        <SaveBackupDialog
+          onClose={() => setBackupDialog(null)}
+          onSaved={() => {
+            setBackupDialog(null);
+            setDone('Backup saved. Keep the file and its password somewhere safe.');
+          }}
+        />
+      ) : null}
+      {backupDialog === 'restore' ? (
+        <RestoreDialog confirmReplace onClose={() => setBackupDialog(null)} onRestored={() => restart()} />
+      ) : null}
       {pinDialog ? (
         <Modal title={pinDialog === 'person' ? 'Choose their PIN' : 'Choose a new helper PIN'} onClose={() => setPinDialog(null)}>
           <ChoosePin

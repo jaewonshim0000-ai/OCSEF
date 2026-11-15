@@ -39,7 +39,7 @@ export function TextField({
   onChange: (v: string) => void;
   hint?: ReactNode;
   placeholder?: string;
-  type?: 'text' | 'tel' | 'time';
+  type?: 'text' | 'tel' | 'time' | 'password';
   maxLength?: number;
   autoComplete?: string;
   inputMode?: 'text' | 'tel' | 'numeric';
