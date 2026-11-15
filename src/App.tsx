@@ -29,6 +29,8 @@ import { SetupMemories, SetupMemoryEdit } from './screens/setup/SetupMemories';
 import { SetupMusic, SetupSongEdit } from './screens/setup/SetupMusic';
 import { SetupPrivacy } from './screens/setup/SetupPrivacy';
 import { SetupSettings } from './screens/setup/SetupSettings';
+import { SetupWizard } from './screens/start/SetupWizard';
+import { Welcome } from './screens/start/Welcome';
 
 export function App({ backend, loader }: { backend?: Backend; loader?: DemoMediaLoader }) {
   return (
@@ -61,7 +63,7 @@ function Shell() {
       document.querySelector('.device-screen .screen-scroll')?.scrollTo?.({ top: 0 });
     });
     return () => window.cancelAnimationFrame(id);
-  }, [route.path, ready]);
+  }, [route.path, ready, data.setup.wizardStep]);
 
   return (
     <div className="stage">
@@ -135,6 +137,9 @@ function Screens() {
 
 function ScreenSwitch() {
   const { route, session } = useNav();
+  const { data } = useStore();
+
+  if (data.setup.mode === 'new') return route.name === 'start' ? <SetupWizard /> : <Welcome />;
 
   // Defence in depth: the router already redirects, but never render a private
   // screen while locked.

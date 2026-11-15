@@ -13,7 +13,7 @@ import {
 } from '../lib/session';
 import { useStore } from '../lib/store';
 
-export type Flash = 'auto-help' | 'private' | null;
+export type Flash = 'auto-help' | 'private' | 'setup-done' | null;
 
 export interface Nav {
   route: Route;
@@ -23,6 +23,8 @@ export interface Nav {
   back(fallback: string): void;
   submitPin(entry: string): Promise<PinOutcome>;
   lock(): void;
+  /** Starts a fresh session at the right first screen for the saved data. */
+  restart(opts?: { unlocked?: boolean; flash?: Flash }): void;
 }
 
 const NavContext = createContext<Nav | null>(null);
@@ -48,7 +50,7 @@ function writeHash(path: string, replace: boolean) {
  * route is reset to the keypad, so refreshing starts a new session.
  */
 export function NavProvider({ children }: { children: ReactNode }) {
-  const { snapshot } = useStore();
+  const { ready, snapshot } = useStore();
   const sessionRef = useRef<LockSession>(initialSession());
   const [session, setSessionState] = useState<LockSession>(sessionRef.current);
   const [route, setRoute] = useState<Route>(() => resolveRoute('/lock', false).route);
@@ -61,7 +63,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
 
   const apply = useCallback(
     (path: string, mode: 'push' | 'replace' | 'none', nextFlash: Flash) => {
-      const resolution = resolveRoute(path, sessionRef.current.unlocked);
+      const resolution = resolveRoute(path, sessionRef.current.unlocked, snapshot().setup.mode);
       const finalPath = resolution.route.path;
       if (mode !== 'none' || finalPath !== path) {
         writeHash(finalPath, mode === 'replace' || mode === 'none');
@@ -71,12 +73,11 @@ export function NavProvider({ children }: { children: ReactNode }) {
       setFlash(resolution.blockedPrivate ? 'private' : nextFlash);
       if (sessionRef.current.view !== finalPath) setSession({ ...sessionRef.current, view: finalPath });
     },
-    [setSession],
+    [setSession, snapshot],
   );
 
-  // Every load starts on the simulated keypad.
+  // Follow back/forward and hash changes. The first route is set by restart().
   useEffect(() => {
-    writeHash('/lock', true);
     const onPop = () => {
       const path = currentHashPath();
       apply(path, 'none', null);
@@ -115,6 +116,26 @@ export function NavProvider({ children }: { children: ReactNode }) {
     apply('/lock', 'push', null);
   }, [apply, setSession]);
 
+  const restart = useCallback<Nav['restart']>(
+    (opts) => {
+      const d = snapshot();
+      const isNew = d.setup.mode === 'new';
+      const unlocked = !isNew && (opts?.unlocked ?? !d.security.lockEnabled);
+      setSession({ ...initialSession(), unlocked });
+      const path = isNew ? ((d.setup.wizardStep ?? 1) > 1 ? '/start' : '/welcome') : unlocked ? '/today' : '/lock';
+      apply(path, 'replace', opts?.flash ?? null);
+    },
+    [apply, setSession, snapshot],
+  );
+
+  // Pick the first screen once saved data has loaded.
+  const started = useRef(false);
+  useEffect(() => {
+    if (!ready || started.current) return;
+    started.current = true;
+    restart();
+  }, [ready, restart]);
+
   // Lock again after RELOCK_AFTER_MS in the background, when the lock is on.
   useEffect(() => {
     let hiddenAt: number | null = null;
@@ -134,8 +155,8 @@ export function NavProvider({ children }: { children: ReactNode }) {
   }, [lock, snapshot]);
 
   const value = useMemo<Nav>(
-    () => ({ route, session, flash, navigate, back, submitPin: doSubmit, lock }),
-    [route, session, flash, navigate, back, doSubmit, lock],
+    () => ({ route, session, flash, navigate, back, submitPin: doSubmit, lock, restart }),
+    [route, session, flash, navigate, back, doSubmit, lock, restart],
   );
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }

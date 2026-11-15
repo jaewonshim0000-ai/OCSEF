@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Database, Phone, RotateCcw, Trash2 } from 'lucide-react';
+import { useNav } from '../../app/nav';
 import { ConfirmDialog } from '../../components/Modal';
 import { Switch } from '../../components/Switch';
 import { Button, Card, Notice } from '../../components/ui';
@@ -16,6 +17,7 @@ const SIZES: Array<{ id: TextSize; label: string }> = [
 
 export function SetupSettings() {
   const { data, save, persistent, startSample, eraseEverything } = useStore();
+  const { restart } = useNav();
   const [confirm, setConfirm] = useState<null | 'phone' | 'reset' | 'erase'>(null);
   const [message, setMessage] = useState<string | null>(null);
   const prefs = data.prefs;
@@ -138,6 +140,7 @@ export function SetupSettings() {
             setConfirm(null);
             try {
               await startSample();
+              restart();
               setMessage(null);
             } catch {
               setMessage("The reset didn't finish. Please try again.");
@@ -161,6 +164,7 @@ export function SetupSettings() {
             setConfirm(null);
             try {
               await eraseEverything();
+              restart();
               setMessage(null);
             } catch {
               setMessage("Erasing didn't finish. Please try again.");

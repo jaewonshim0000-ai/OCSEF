@@ -221,3 +221,20 @@ export async function openBackend(): Promise<Backend> {
     return new MemoryBackend();
   }
 }
+
+/** Asks the browser not to clear Familiar Place's data when space runs low. */
+export async function persistStorage(): Promise<boolean> {
+  try {
+    return (await navigator.storage?.persist?.()) ?? false;
+  } catch {
+    return false;
+  }
+}
+
+export async function isStoragePersisted(): Promise<boolean> {
+  try {
+    return (await navigator.storage?.persisted?.()) ?? false;
+  } catch {
+    return false;
+  }
+}

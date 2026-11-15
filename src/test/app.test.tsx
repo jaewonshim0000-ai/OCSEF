@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
@@ -42,6 +42,44 @@ function goToHash(path: string) {
     window.history.pushState(null, '', `#${path}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
   });
+}
+
+async function renderFresh(backend: MemoryBackend = new MemoryBackend()) {
+  const user = userEvent.setup();
+  render(<App backend={backend} loader={loader} />);
+  await screen.findByRole('heading', { name: 'Welcome to Familiar Place' });
+  return { user, backend };
+}
+
+const HELPER_PIN = '246810';
+
+/** Runs the first-run wizard: helper PIN, name, their PIN (or none), skip home and contact. */
+async function quickSetup(
+  user: ReturnType<typeof userEvent.setup>,
+  { pin = '1357', name = 'Ada' }: { pin?: string | null; name?: string } = {},
+) {
+  await user.click(screen.getByRole('button', { name: 'Set up for someone' }));
+  await screen.findByRole('heading', { name: 'Choose a helper PIN' });
+  await enterPin(user, HELPER_PIN);
+  await enterPin(user, HELPER_PIN);
+  await user.type(await screen.findByLabelText('Preferred name'), name);
+  await user.click(screen.getByRole('button', { name: 'Next' }));
+  await screen.findByRole('heading', { name: 'Choose their PIN' });
+  if (pin) {
+    await enterPin(user, pin);
+    await enterPin(user, pin);
+  } else {
+    await user.click(screen.getByRole('button', { name: "Don't use a PIN" }));
+  }
+  await screen.findByRole('heading', { name: 'Home' });
+  await user.click(screen.getByRole('button', { name: 'Skip for now' }));
+  await screen.findByRole('heading', { name: 'Someone they trust' });
+  await user.click(screen.getByRole('button', { name: pin ? 'Skip for now' : 'Skip and finish' }));
+  if (pin) {
+    await screen.findByRole('heading', { name: 'Before unlock' });
+    await user.click(screen.getByRole('button', { name: 'Finish' }));
+  }
+  await screen.findByRole('heading', { name: new RegExp(`Good (morning|afternoon|evening), ${name}`) });
 }
 
 function setVisibility(state: 'hidden' | 'visible') {
@@ -199,7 +237,7 @@ describe('daily companion', () => {
     expect(screen.getByText('14 Elm Street, Riverton RT4 2AB')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open in maps' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
-    await user.click(screen.getByRole('button', { name: 'Lock phone' }));
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
     expect(screen.getByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
     expect(wrongPinsInARow()).toBe('0');
     goToHash('/home');
@@ -355,7 +393,7 @@ describe('background music', () => {
     expect(await screen.findByRole('button', { name: 'Background music playing: The Riverside Waltz' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
-    await user.click(screen.getByRole('button', { name: 'Lock phone' }));
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
     expect(musicStatus()).toBe('Off while locked');
     expect(screen.queryByRole('button', { name: /Background music/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Get help' }));
@@ -378,7 +416,7 @@ describe('background music', () => {
     await user.click(await screen.findByRole('button', { name: /Background music playing/ }));
     await user.click(screen.getByRole('button', { name: 'Pause music' }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    await user.click(screen.getByRole('button', { name: 'Lock phone' }));
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
     await user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
     expect(await screen.findByRole('button', { name: 'Background music paused: The Riverside Waltz' })).toBeInTheDocument();
 
@@ -395,7 +433,7 @@ describe('background music', () => {
     await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'));
     expect(screen.getByRole('button', { name: /Background music paused/ })).toBeInTheDocument();
     goToHash('/today');
-    await user.click(screen.getByRole('button', { name: 'Lock phone' }));
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
     await user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
     await screen.findByRole('heading', { name: /Good/ });
     expect(screen.getByRole('button', { name: /Background music paused/ })).toBeInTheDocument();
@@ -421,7 +459,7 @@ describe('setup and consent', () => {
     await waitFor(() => expect(screen.queryByText('Shown person: Maya')).not.toBeInTheDocument());
 
     goToHash('/today');
-    await user.click(screen.getByRole('button', { name: 'Lock phone' }));
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
     await user.click(screen.getByRole('button', { name: 'Get help' }));
     await user.click(screen.getByRole('button', { name: /^Home/ }));
     expect(screen.queryByText(/My front door is blue/)).not.toBeInTheDocument();
@@ -485,19 +523,15 @@ describe('setup and consent', () => {
     expect(screen.getByText('Our first holiday.')).toBeInTheDocument();
   });
 
-  it('erase everything leaves an empty locked preview with clear next steps', async () => {
-    const { user } = await unlockToSetup();
+  it('erase everything returns to Welcome with nothing kept', async () => {
+    const { user, backend } = await unlockToSetup();
     await user.click(screen.getByRole('button', { name: /Settings and reset/ }));
     await user.click(screen.getByRole('button', { name: 'Erase everything' }));
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Erase everything' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(await screen.findByRole('heading', { name: 'Welcome to Familiar Place' })).toBeInTheDocument();
+    expect(await backend.getAll('contacts')).toEqual([]);
     goToHash('/today');
-    await user.click(await screen.findByRole('button', { name: 'Lock phone' }));
-    await user.click(screen.getByRole('button', { name: 'Get help' }));
-    await user.click(screen.getByRole('button', { name: /^Routine/ }));
-    expect(screen.getByText(/No routine reminder has been shared/)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Back to help' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('button', { name: 'Go to Family' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Welcome to Familiar Place' })).toBeInTheDocument();
   });
 });
 
@@ -522,5 +556,92 @@ describe('locking again', () => {
     vi.setSystemTime(Date.now() + 5 * 60_000);
     setVisibility('visible');
     expect(await screen.findByRole('heading', { name: 'Enter PIN' })).toBeInTheDocument();
+  });
+});
+
+describe('first run', () => {
+  it('sets up from blank, then locks with their own PIN', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    expect(screen.getByText(/All set/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Music/ }));
+    expect(screen.getByText('No favourite music has been added yet.')).toBeInTheDocument();
+    goToHash('/today');
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    expect(screen.queryByRole('button', { name: /Use sample PIN/ })).not.toBeInTheDocument();
+    await enterPin(user, '2580');
+    expect(screen.getByRole('status')).toHaveTextContent("That PIN didn't match");
+    await enterPin(user, '1357');
+    expect(await screen.findByRole('heading', { name: /Good .*, Ada/ })).toBeInTheDocument();
+  });
+
+  it('without a PIN, opens straight to Today, now, next time and after time away', async () => {
+    const { user, backend } = await renderFresh();
+    await quickSetup(user, { pin: null });
+    expect(screen.queryByRole('button', { name: 'Lock' })).not.toBeInTheDocument();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      setVisibility('hidden');
+      vi.setSystemTime(Date.now() + 6 * 60_000);
+      setVisibility('visible');
+      expect(screen.getByRole('heading', { name: /Good .*, Ada/ })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+      Reflect.deleteProperty(document, 'visibilityState');
+    }
+    cleanup();
+    render(<App backend={backend} loader={loader} />);
+    expect(await screen.findByRole('heading', { name: /Good .*, Ada/ })).toBeInTheDocument();
+  });
+
+  it('resumes at the same step after closing the app', async () => {
+    const { user, backend } = await renderFresh();
+    await user.click(screen.getByRole('button', { name: 'Set up for someone' }));
+    await enterPin(user, HELPER_PIN);
+    await enterPin(user, HELPER_PIN);
+    await user.type(await screen.findByLabelText('Preferred name'), 'Ada');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByRole('heading', { name: 'Choose their PIN' });
+    cleanup();
+    render(<App backend={backend} loader={loader} />);
+    expect(await screen.findByRole('heading', { name: 'Choose their PIN' })).toBeInTheDocument();
+    expect(screen.getByText('Step 3 of 6')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    expect(await screen.findByLabelText('Preferred name')).toHaveValue('Ada');
+  });
+
+  it('asks for a number for a named trusted person, and Back then Next never adds them twice', async () => {
+    const { user, backend } = await renderFresh();
+    await user.click(screen.getByRole('button', { name: 'Set up for someone' }));
+    await enterPin(user, HELPER_PIN);
+    await enterPin(user, HELPER_PIN);
+    await user.type(await screen.findByLabelText('Preferred name'), 'Ada');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByRole('heading', { name: 'Choose their PIN' });
+    await enterPin(user, '1357');
+    await enterPin(user, '1357');
+    await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
+    await user.type(await screen.findByLabelText('Name'), 'Maya');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Add a phone number');
+    await user.type(screen.getByLabelText('Phone number'), '07700 900123');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByRole('heading', { name: 'Before unlock' });
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    expect(await screen.findByLabelText('Name')).toHaveValue('Maya');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByRole('heading', { name: 'Before unlock' });
+    await user.click(screen.getByRole('switch', { name: "Maya's name" }));
+    await user.click(screen.getByRole('button', { name: 'Finish' }));
+    await screen.findByRole('heading', { name: /Good .*, Ada/ });
+    expect(await backend.getAll('contacts')).toHaveLength(1);
+    expect((await backend.getKV<{ contact: { id: string; name: boolean } }>('approvals'))?.contact.name).toBe(true);
+  });
+
+  it('opens the sample family from Welcome', async () => {
+    const { user } = await renderFresh();
+    await user.click(screen.getByRole('button', { name: 'Look around with a sample family' }));
+    await user.click(await screen.findByRole('button', { name: /Use sample PIN/ }));
+    expect(await screen.findByRole('heading', { name: /Good .*, Peggy/ })).toBeInTheDocument();
   });
 });

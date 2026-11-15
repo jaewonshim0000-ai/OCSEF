@@ -1,7 +1,7 @@
-import { ChevronRight, Images, Lock, Music, Play, Settings } from 'lucide-react';
+import { Check, ChevronRight, Images, Lock, Music, Play, Settings } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { TileGrid } from '../../components/TileGrid';
-import { Button, Heading, Screen, TopBar } from '../../components/ui';
+import { Button, Heading, Notice, Screen, TopBar } from '../../components/ui';
 import { formatClock, formatDate, formatTime, nextUp, partOfDay, todayEntries, type TodayEntry } from '../../lib/schedule';
 import { useStore } from '../../lib/store';
 import { useNow } from '../../lib/useNow';
@@ -50,7 +50,7 @@ export function NextUpCard({
 /** The daily companion's first screen after unlocking. */
 export function Today() {
   const { data } = useStore();
-  const { navigate, lock } = useNav();
+  const { navigate, lock, flash } = useNav();
   const now = useNow();
   const entries = todayEntries(data.schedule, data.routines);
   const next = nextUp(entries, now);
@@ -62,6 +62,11 @@ export function Today() {
         Good {partOfDay(now)}
         {name ? `, ${name}` : ''}
       </Heading>
+      {flash === 'setup-done' ? (
+        <Notice tone="ok" icon={Check}>
+          All set. Add routines, memories and music any time in Helper setup.
+        </Notice>
+      ) : null}
 
       <NextUpCard
         entry={next}
@@ -91,9 +96,11 @@ export function Today() {
       </button>
 
       <div className="today-footer">
-        <Button icon={Lock} onClick={lock}>
-          Lock phone
-        </Button>
+        {data.security.lockEnabled ? (
+          <Button icon={Lock} onClick={lock}>
+            Lock
+          </Button>
+        ) : null}
         <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup')}>
           Helper setup
         </Button>

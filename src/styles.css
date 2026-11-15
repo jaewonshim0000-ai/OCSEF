@@ -2315,3 +2315,25 @@ div.photo-hotspot {
     border: 2px solid ButtonText;
   }
 }
+
+/* ---------- First run ---------- */
+
+.wizard-count {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.choose-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.choose-pin-step {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
