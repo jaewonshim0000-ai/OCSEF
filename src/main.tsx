@@ -4,6 +4,7 @@ import '@fontsource/atkinson-hyperlegible/400.css';
 import '@fontsource/atkinson-hyperlegible/700.css';
 import './styles.css';
 import { App } from './App';
+import { isNative } from './lib/native';
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
@@ -12,7 +13,8 @@ createRoot(document.getElementById('root') as HTMLElement).render(
 );
 
 // Cache the app shell so the basics keep working offline after the first load.
-if ('serviceWorker' in navigator) {
+// The Android app bundles its files, so it needs no worker.
+if ('serviceWorker' in navigator && !isNative()) {
   if (import.meta.env.PROD) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined);

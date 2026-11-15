@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Familiar Place</string>
+    <string name="title_activity_main">Familiar Place</string>
+    <string name="package_name">com.familiarplace.app</string>
+    <string name="custom_url_scheme">com.familiarplace.app</string>
+</resources>
