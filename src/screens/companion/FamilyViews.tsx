@@ -1,4 +1,4 @@
-import { ChevronRight, Phone, Settings } from 'lucide-react';
+import { ChevronRight, Phone } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { backTarget, telHref, withFrom } from '../../app/paths';
 import { Photo } from '../../components/Photo';
@@ -7,6 +7,7 @@ import { Button, Heading, LinkButton, Notice, Screen, Stack, TopBar } from '../.
 import { useStore } from '../../lib/store';
 import type { Contact } from '../../lib/types';
 import { DemoCallView } from '../locked/LockedViews';
+import { formatPhone } from '../../lib/phone';
 
 export function sortContacts(contacts: Contact[]): Contact[] {
   return [...contacts].sort((a, b) => Number(b.primary) - Number(a.primary) || a.order - b.order);
@@ -67,12 +68,7 @@ export function FamilyFull() {
     >
       <Heading>Family</Heading>
       {contacts.length === 0 ? (
-        <Stack>
-          <Notice>No one has been added yet.</Notice>
-          <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/family')}>
-            Add someone in Helper setup
-          </Button>
-        </Stack>
+        <Notice>No one has been added yet. A helper can add people in Helper setup.</Notice>
       ) : (
         <ul className="contact-list">
           {contacts.map((c) => (
@@ -82,7 +78,7 @@ export function FamilyFull() {
                 <span className="contact-card-text">
                   <span className="contact-name">{c.name || 'Unnamed'}</span>
                   {c.relationship ? <span className="contact-rel">{c.relationship}</span> : null}
-                  {c.phone ? <span className="contact-phone">{c.phone}</span> : null}
+                  {c.phone ? <span className="contact-phone">{formatPhone(c.phone)}</span> : null}
                 </span>
                 <ChevronRight size={26} strokeWidth={2.5} aria-hidden />
                 <span className="sr-only">More about {c.name}</span>
@@ -125,7 +121,7 @@ export function ContactDetail() {
             <div className="contact-hero">
               <Photo photo={contact.photo} kind="person" name={contact.name} className="photo-portrait" />
               {contact.relationship ? <p className="contact-hero-name">{contact.relationship}</p> : null}
-              {contact.phone ? <p className="contact-phone big-text">{contact.phone}</p> : null}
+              {contact.phone ? <p className="contact-phone big-text">{formatPhone(contact.phone)}</p> : null}
             </div>
             <CallAction contact={contact} />
             <VoiceMessageButton contact={contact} />
@@ -159,7 +155,7 @@ export function DemoCall() {
       photo={<Photo photo={contact.photo} kind="person" name={contact.name} className="photo-portrait" />}
       name={contact.name.trim() || null}
       relationship={contact.relationship.trim() || null}
-      number={contact.phone}
+      number={formatPhone(contact.phone)}
       onEnd={() => navigate(backPath)}
     />
   );

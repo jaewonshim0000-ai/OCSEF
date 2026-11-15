@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, Clock, ListChecks, Pause, Play, RotateCcw, Settings } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Clock, ListChecks, Pause, Play, RotateCcw } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { backTarget, withFrom } from '../../app/paths';
 import { Photo } from '../../components/Photo';
@@ -54,12 +54,7 @@ export function RoutineFull() {
               })}
             </ol>
           ) : (
-            <>
-              <p>Nothing is planned for today.</p>
-              <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/routine')}>
-                Plan the day in Helper setup
-              </Button>
-            </>
+            <p>A helper can plan the day in Helper setup.</p>
           )}
         </Card>
 
@@ -74,12 +69,7 @@ export function RoutineFull() {
               ))}
             </div>
           ) : (
-            <>
-              <p>No step-by-step routines yet.</p>
-              <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/routine')}>
-                Add one in Helper setup
-              </Button>
-            </>
+            <p>No step-by-step routines yet. A helper can add them in Helper setup.</p>
           )}
         </Card>
       </Stack>
@@ -178,12 +168,7 @@ export function RoutinePlayer() {
     return (
       <Screen tone="routine" top={top}>
         <Heading>{routine.title || 'Routine'}</Heading>
-        <Stack>
-          <Notice>This routine has no steps yet.</Notice>
-          <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate(`/setup/routine/${routine.id}`)}>
-            Add steps in Helper setup
-          </Button>
-        </Stack>
+        <Notice>This routine has no steps yet. A helper can add them in Helper setup.</Notice>
       </Screen>
     );
   }

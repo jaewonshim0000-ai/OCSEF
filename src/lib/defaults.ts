@@ -33,7 +33,7 @@ export function emptySchedule(): Schedule {
 }
 
 export function defaultPrefs(): Prefs {
-  return { textSize: 'standard', readAloud: true, callMode: 'phone', backgroundMusic: true };
+  return { textSize: 'standard', readAloud: true, callMode: 'phone', backgroundMusic: false };
 }
 
 /** A blank profile with an empty locked preview. */

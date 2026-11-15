@@ -60,12 +60,7 @@ export function YouFull() {
                 ))}
               </ul>
             ) : (
-              <>
-                <p>No one has recorded a message yet.</p>
-                <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/family')}>
-                  Record one in Helper setup
-                </Button>
-              </>
+              <p>No one has recorded a message yet. A helper can add one in Helper setup.</p>
             )}
           </Card>
           {details.length ? (

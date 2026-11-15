@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, MapPin, Navigation, Settings } from 'lucide-react';
+import { ChevronRight, MapPin, Navigation } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { backTarget, mapsHref, withFrom } from '../../app/paths';
 import { Modal } from '../../components/Modal';
@@ -40,12 +40,7 @@ export function HomeFull() {
               </Button>
             </>
           ) : (
-            <>
-              <p>No address has been saved yet.</p>
-              <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/home')}>
-                Add it in Helper setup
-              </Button>
-            </>
+            <p>No address has been saved yet. A helper can add it in Helper setup.</p>
           )}
         </Card>
 
@@ -72,12 +67,7 @@ export function HomeFull() {
               ))}
             </div>
           ) : (
-            <>
-              <p>No familiar places have been added yet.</p>
-              <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/home')}>
-                Add one in Helper setup
-              </Button>
-            </>
+            <p>No familiar places have been added yet. A helper can add them in Helper setup.</p>
           )}
         </Card>
       </Stack>
@@ -120,12 +110,7 @@ export function Places() {
         {space ? space.label || 'A familiar place' : 'Where things are'}
       </Heading>
       {!space ? (
-        <Stack>
-          <Notice>No familiar places have been added yet.</Notice>
-          <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/home')}>
-            Add one in Helper setup
-          </Button>
-        </Stack>
+        <Notice>No familiar places have been added yet. A helper can add them in Helper setup.</Notice>
       ) : (
         <Stack>
           {spaces.length > 1 ? (

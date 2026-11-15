@@ -1,8 +1,8 @@
-import { Music, Pause, Play, Settings } from 'lucide-react';
+import { Music, Pause, Play } from 'lucide-react';
 import { songTitle, useMusic, type PlayableSong } from '../../app/music';
 import { useNav } from '../../app/nav';
 import { Photo } from '../../components/Photo';
-import { Button, Heading, Notice, Screen, Stack, TopBar } from '../../components/ui';
+import { Heading, Notice, Screen, TopBar } from '../../components/ui';
 import { useStore } from '../../lib/store';
 
 /** Play or pause one song in the background music player. */
@@ -47,12 +47,7 @@ export function MusicView() {
     <Screen top={<TopBar back={{ label: back.label, onClick: () => navigate(back.path) }} getHelp={() => navigate('/help')} />}>
       <Heading sub="Songs I love">Music</Heading>
       {songs.length === 0 ? (
-        <Stack>
-          <Notice icon={Music}>No favourite music has been added yet.</Notice>
-          <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/music')}>
-            Add songs in Helper setup
-          </Button>
-        </Stack>
+        <Notice icon={Music}>No favourite music has been added yet. A helper can add songs in Helper setup.</Notice>
       ) : (
         <ul className="song-list">
           {songs.map((song) => {
@@ -83,11 +78,6 @@ export function MusicView() {
           })}
         </ul>
       )}
-      {songs.some((s) => !s.audio) ? (
-        <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/music')}>
-          Add music in Helper setup
-        </Button>
-      ) : null}
     </Screen>
   );
 }

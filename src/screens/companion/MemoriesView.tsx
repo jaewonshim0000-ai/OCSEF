@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Settings, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { ConfirmDialog } from '../../components/Modal';
 import { Photo } from '../../components/Photo';
@@ -27,12 +27,7 @@ export function MemoriesView() {
     return (
       <Screen top={top}>
         <Heading>Memories</Heading>
-        <Stack>
-          <Notice>There are no photos here yet.</Notice>
-          <Button variant="quiet" size="md" icon={Settings} onClick={() => navigate('/setup/memories')}>
-            Add photos in Helper setup
-          </Button>
-        </Stack>
+        <Notice>There are no photos here yet. A helper can add them in Helper setup.</Notice>
       </Screen>
     );
   }

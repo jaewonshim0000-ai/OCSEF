@@ -36,6 +36,8 @@ describe('IndexedDB storage', () => {
     const first = await loadAppData(backend);
     expect(first.setup).toEqual({ mode: 'new', wizardStep: 1, lastBackupAt: null });
     expect(first.security).toEqual({ personPin: null, helperPin: null, lockEnabled: true });
+    // Sudden sound can unsettle; a helper turns background music on in Helper setup.
+    expect(first.prefs.backgroundMusic).toBe(false);
     expect(first.profile.preferredName).toBe('');
     expect(first.contacts).toEqual([]);
     expect(isPreviewEmpty(buildLockedPreview(first))).toBe(true);

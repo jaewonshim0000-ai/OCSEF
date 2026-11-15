@@ -555,7 +555,7 @@ describe('first run', () => {
     await quickSetup(user);
     expect(screen.getByText(/All set/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Music/ }));
-    expect(screen.getByText('No favourite music has been added yet.')).toBeInTheDocument();
+    expect(screen.getByText('No favourite music has been added yet. A helper can add songs in Helper setup.')).toBeInTheDocument();
     goToHash('/today');
     await user.click(screen.getByRole('button', { name: 'Lock' }));
     expect(screen.queryByRole('button', { name: /Use sample PIN/ })).not.toBeInTheDocument();
@@ -614,7 +614,7 @@ describe('first run', () => {
     await user.type(await screen.findByLabelText('Name'), 'Maya');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getByRole('alert')).toHaveTextContent('Add a phone number');
-    await user.type(screen.getByLabelText('Phone number'), '07700 900123');
+    await user.type(screen.getByLabelText('Phone number'), '07700900123');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await screen.findByRole('heading', { name: 'Before unlock' });
     await user.click(screen.getByRole('button', { name: 'Back' }));
@@ -626,6 +626,9 @@ describe('first run', () => {
     await screen.findByRole('heading', { name: /Good .*, Ada/ });
     expect(await backend.getAll('contacts')).toHaveLength(1);
     expect((await backend.getKV<{ contact: { id: string; name: boolean } }>('approvals'))?.contact.name).toBe(true);
+    // A number typed without spaces is shown spaced, so it's easier to read.
+    goToHash('/family');
+    expect(screen.getByText('07700 900123')).toBeInTheDocument();
   });
 
   it('opens the sample family from Welcome', async () => {
@@ -887,5 +890,20 @@ describe('review fixes', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('person-facing empty screens', () => {
+  it('point to a helper instead of sending the person into Helper setup, and say each thing once', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    for (const tile of [/^Home/, /^Family/, /^You/, /^Memories/, /^Music/, /^Routine/]) {
+      goToHash('/today');
+      await user.click(screen.getByRole('button', { name: tile }));
+      expect(screen.queryByRole('button', { name: /in Helper setup/ })).not.toBeInTheDocument();
+    }
+    // On Routine: "nothing planned" is said once, in Next up.
+    expect(screen.getAllByText('Nothing is planned for today.')).toHaveLength(1);
+    expect(screen.getByText('A helper can plan the day in Helper setup.')).toBeInTheDocument();
   });
 });
