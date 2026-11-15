@@ -3,11 +3,15 @@ import { stopAllPlayback } from '../lib/playback';
 import { resolveRoute, type Route } from '../lib/router';
 import { verifyPin } from '../lib/pin';
 import {
+  helperAttempt,
+  helperOpenAt,
+  initialHelperGate,
   initialSession,
   isCompleteEntry,
   relock,
   submitPin,
   RELOCK_AFTER_MS,
+  type HelperGate,
   type LockSession,
   type PinOutcome,
 } from '../lib/session';
@@ -23,6 +27,11 @@ export interface Nav {
   back(fallback: string): void;
   submitPin(entry: string): Promise<PinOutcome>;
   lock(): void;
+  /** True while a correct helper PIN is less than 10 minutes old. */
+  isHelperOpen(): boolean;
+  /** When the 30-second wait after 5 wrong helper PINs ends (ms since epoch), or 0. */
+  helperWaitUntil: number;
+  checkHelperPin(entry: string): Promise<'ok' | 'wrong' | 'wait'>;
   /** Starts a fresh session at the right first screen for the saved data. */
   restart(opts?: { unlocked?: boolean; flash?: Flash }): void;
 }
@@ -55,6 +64,29 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const [session, setSessionState] = useState<LockSession>(sessionRef.current);
   const [route, setRoute] = useState<Route>(() => resolveRoute('/lock', false).route);
   const [flash, setFlash] = useState<Flash>(null);
+  const gateRef = useRef<HelperGate>(initialHelperGate());
+  const [gate, setGateState] = useState<HelperGate>(gateRef.current);
+  const setGate = useCallback((g: HelperGate) => {
+    gateRef.current = g;
+    setGateState(g);
+  }, []);
+  const closeGate = useCallback(() => setGate({ ...gateRef.current, verifiedUntil: 0 }), [setGate]);
+
+  const isHelperOpen = useCallback(() => helperOpenAt(gateRef.current, Date.now()), []);
+
+  const checkHelperPin = useCallback<Nav['checkHelperPin']>(
+    async (entry) => {
+      if (Date.now() < gateRef.current.waitUntil) return 'wait';
+      const pin = snapshot().security.helperPin;
+      const matched = pin ? await verifyPin(entry, pin).catch(() => false) : false;
+      const now = Date.now();
+      const next = helperAttempt(gateRef.current, matched, now);
+      setGate(next);
+      if (matched && helperOpenAt(next, now)) return 'ok';
+      return now < next.waitUntil ? 'wait' : 'wrong';
+    },
+    [setGate, snapshot],
+  );
 
   const setSession = useCallback((next: LockSession) => {
     sessionRef.current = next;
@@ -112,12 +144,14 @@ export function NavProvider({ children }: { children: ReactNode }) {
   );
 
   const lock = useCallback(() => {
+    closeGate();
     setSession(relock());
     apply('/lock', 'push', null);
-  }, [apply, setSession]);
+  }, [apply, closeGate, setSession]);
 
   const restart = useCallback<Nav['restart']>(
     (opts) => {
+      setGate(initialHelperGate());
       const d = snapshot();
       const isNew = d.setup.mode === 'new';
       const unlocked = !isNew && (opts?.unlocked ?? !d.security.lockEnabled);
@@ -125,7 +159,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
       const path = isNew ? ((d.setup.wizardStep ?? 1) > 1 ? '/start' : '/welcome') : unlocked ? '/today' : '/lock';
       apply(path, 'replace', opts?.flash ?? null);
     },
-    [apply, setSession, snapshot],
+    [apply, setGate, setSession, snapshot],
   );
 
   // Pick the first screen once saved data has loaded.
@@ -147,16 +181,29 @@ export function NavProvider({ children }: { children: ReactNode }) {
       const away = hiddenAt === null ? 0 : Date.now() - hiddenAt;
       hiddenAt = null;
       if (away < RELOCK_AFTER_MS) return;
+      closeGate();
       const d = snapshot();
       if (d.setup.mode !== 'new' && d.security.lockEnabled && sessionRef.current.unlocked) lock();
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [lock, snapshot]);
+  }, [closeGate, lock, snapshot]);
 
   const value = useMemo<Nav>(
-    () => ({ route, session, flash, navigate, back, submitPin: doSubmit, lock, restart }),
-    [route, session, flash, navigate, back, doSubmit, lock, restart],
+    () => ({
+      route,
+      session,
+      flash,
+      navigate,
+      back,
+      submitPin: doSubmit,
+      lock,
+      restart,
+      isHelperOpen,
+      helperWaitUntil: gate.waitUntil,
+      checkHelperPin,
+    }),
+    [route, session, flash, navigate, back, doSubmit, lock, restart, isHelperOpen, gate, checkHelperPin],
   );
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }

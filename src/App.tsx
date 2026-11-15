@@ -28,6 +28,7 @@ import { SetupRoutine, SetupRoutineEdit } from './screens/setup/SetupRoutine';
 import { SetupMemories, SetupMemoryEdit } from './screens/setup/SetupMemories';
 import { SetupMusic, SetupSongEdit } from './screens/setup/SetupMusic';
 import { SetupPrivacy } from './screens/setup/SetupPrivacy';
+import { HelperGate } from './screens/setup/HelperGate';
 import { SetupSettings } from './screens/setup/SetupSettings';
 import { SetupWizard } from './screens/start/SetupWizard';
 import { Welcome } from './screens/start/Welcome';
@@ -184,7 +185,10 @@ function ScreenSwitch() {
 }
 
 function SetupScreens() {
-  const { route } = useNav();
+  const { route, isHelperOpen } = useNav();
+  const { data } = useStore();
+  // The sample family has no helper PIN, so it skips the gate.
+  if (data.setup.mode === 'real' && !isHelperOpen()) return <HelperGate />;
   const id = route.id;
   switch (route.section) {
     case 'you':

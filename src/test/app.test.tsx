@@ -645,3 +645,108 @@ describe('first run', () => {
     expect(await screen.findByRole('heading', { name: /Good .*, Peggy/ })).toBeInTheDocument();
   });
 });
+
+describe('helper gate', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('asks for the helper PIN, waits after 5 wrong tries, then stays open for 10 minutes', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
+    for (let i = 0; i < 4; i++) await enterPin(user, '111111');
+    expect(screen.getByRole('status')).toHaveTextContent("That isn't the helper PIN.");
+    await enterPin(user, '111111');
+    expect(screen.getByText(/Try again in 30 seconds/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2' })).toBeDisabled();
+
+    vi.setSystemTime(Date.now() + 30_000);
+    await waitFor(() => expect(screen.getByRole('button', { name: '2' })).toBeEnabled(), { timeout: 2500 });
+    await enterPin(user, HELPER_PIN);
+    expect(await screen.findByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    expect(screen.getByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
+
+    vi.setSystemTime(Date.now() + 10 * 60_000);
+    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
+  });
+
+  it('Cancel returns to Today without opening setup', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('heading', { name: /Good/ })).toBeInTheDocument();
+  });
+
+  it('a forgotten helper PIN can only lead to erasing, after two confirmations', async () => {
+    const { user, backend } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await user.click(screen.getByRole('button', { name: 'Forgot the helper PIN?' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Erase everything' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Erase everything' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Yes, erase everything' }));
+    expect(await screen.findByRole('heading', { name: 'Welcome to Familiar Place' })).toBeInTheDocument();
+    expect((await backend.getKV<{ preferredName: string }>('profile'))?.preferredName).toBe('');
+  });
+
+  it('the sample family skips the gate', async () => {
+    const { user } = await renderApp();
+    await user.click(screen.getByRole('button', { name: /Use sample PIN/ }));
+    await user.click(await screen.findByRole('button', { name: 'Helper setup' }));
+    expect(screen.getByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
+  });
+});
+
+describe('PIN settings', () => {
+  async function toSettings(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /Settings and reset/ }));
+  }
+
+  it('changes their PIN only when both entries match', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await toSettings(user);
+    await user.click(screen.getByRole('button', { name: 'Change their PIN' }));
+    const dialog = screen.getByRole('dialog');
+    await enterPin(user, '1111');
+    await enterPin(user, '2222');
+    expect(within(dialog).getByRole('status')).toHaveTextContent("Those didn't match");
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    goToHash('/today');
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    await enterPin(user, '1357');
+    expect(await screen.findByRole('heading', { name: /Good/ })).toBeInTheDocument();
+
+    await toSettings(user);
+    await user.click(screen.getByRole('button', { name: 'Change their PIN' }));
+    await enterPin(user, '9999');
+    await enterPin(user, '9999');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    goToHash('/today');
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    await enterPin(user, '1357');
+    expect(screen.getByRole('status')).toHaveTextContent("That PIN didn't match");
+    await enterPin(user, '9999');
+    expect(await screen.findByRole('heading', { name: /Good/ })).toBeInTheDocument();
+  });
+
+  it('turning the PIN off removes the Lock button', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await toSettings(user);
+    await user.click(screen.getByRole('switch', { name: 'Ask for a PIN to open Familiar Place' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Turn off the PIN' }));
+    await waitFor(() => expect(screen.getByRole('switch', { name: 'Ask for a PIN to open Familiar Place' })).toHaveAttribute('aria-checked', 'false'));
+    goToHash('/today');
+    expect(screen.queryByRole('button', { name: 'Lock' })).not.toBeInTheDocument();
+  });
+});

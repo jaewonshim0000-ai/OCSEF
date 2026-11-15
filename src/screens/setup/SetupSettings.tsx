@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Database, Phone, RotateCcw, Trash2 } from 'lucide-react';
+import { Database, KeyRound, Lock, Phone, RotateCcw, Trash2 } from 'lucide-react';
 import { useNav } from '../../app/nav';
-import { ConfirmDialog } from '../../components/Modal';
+import { ChoosePin } from '../../components/ChoosePin';
+import { ConfirmDialog, Modal } from '../../components/Modal';
 import { Switch } from '../../components/Switch';
 import { Button, Card, Notice } from '../../components/ui';
+import { hashPin } from '../../lib/pin';
 import { speechAvailable } from '../../lib/playback';
+import { HELPER_PIN_LENGTH, PIN_LENGTH } from '../../lib/session';
 import { useStore } from '../../lib/store';
-import type { CallMode, Prefs, TextSize } from '../../lib/types';
+import type { CallMode, Prefs, Security, TextSize } from '../../lib/types';
 import { SetupPage } from './common';
 
 const SIZES: Array<{ id: TextSize; label: string }> = [
@@ -18,9 +21,15 @@ const SIZES: Array<{ id: TextSize; label: string }> = [
 export function SetupSettings() {
   const { data, save, persistent, startSample, eraseEverything } = useStore();
   const { restart } = useNav();
-  const [confirm, setConfirm] = useState<null | 'phone' | 'reset' | 'erase'>(null);
+  const [confirm, setConfirm] = useState<null | 'phone' | 'reset' | 'erase' | 'lock-off'>(null);
   const [message, setMessage] = useState<string | null>(null);
   const prefs = data.prefs;
+  const sample = data.setup.mode === 'sample';
+  const security = data.security;
+  const [pinDialog, setPinDialog] = useState<null | 'person' | 'helper'>(null);
+  const [done, setDone] = useState<string | null>(null);
+
+  const saveSecurity = (patch: Partial<Security>) => save({ security: { ...security, ...patch } });
 
   const setPrefs = async (patch: Partial<Prefs>) => {
     try {
@@ -75,6 +84,51 @@ export function SetupSettings() {
         />
       </Card>
 
+      {done ? (
+        <div role="status">
+          <Notice tone="ok">{done}</Notice>
+        </div>
+      ) : null}
+
+      <Card>
+        <h2 className="card-title">
+          <Lock size={24} strokeWidth={2.5} aria-hidden /> Lock
+        </h2>
+        {sample ? (
+          <p>PIN settings appear once Familiar Place is set up for real.</p>
+        ) : (
+          <>
+            <Switch
+              label="Ask for a PIN to open Familiar Place"
+              description={
+                security.lockEnabled
+                  ? 'Familiar Place opens at the keypad, and locks again after 5 minutes in the background.'
+                  : 'Familiar Place opens straight to Today.'
+              }
+              checked={security.lockEnabled}
+              onChange={(on) => (on ? setPinDialog('person') : setConfirm('lock-off'))}
+            />
+            {security.lockEnabled ? (
+              <Button size="md" icon={KeyRound} onClick={() => setPinDialog('person')}>
+                Change their PIN
+              </Button>
+            ) : null}
+          </>
+        )}
+      </Card>
+
+      {!sample ? (
+        <Card>
+          <h2 className="card-title">
+            <KeyRound size={24} strokeWidth={2.5} aria-hidden /> Helper PIN
+          </h2>
+          <p>Needed to open Helper setup.</p>
+          <Button size="md" icon={KeyRound} onClick={() => setPinDialog('helper')}>
+            Change helper PIN
+          </Button>
+        </Card>
+      ) : null}
+
       <Card>
         <h2 className="card-title" id="call-mode-label">
           <Phone size={24} strokeWidth={2.5} aria-hidden /> Calls
@@ -108,6 +162,38 @@ export function SetupSettings() {
         </Button>
       </Card>
 
+      {pinDialog ? (
+        <Modal title={pinDialog === 'person' ? 'Choose their PIN' : 'Choose a new helper PIN'} onClose={() => setPinDialog(null)}>
+          <ChoosePin
+            length={pinDialog === 'person' ? PIN_LENGTH : HELPER_PIN_LENGTH}
+            onChosen={async (pin) => {
+              const hash = await hashPin(pin);
+              await saveSecurity(pinDialog === 'person' ? { personPin: hash, lockEnabled: true } : { helperPin: hash });
+              setDone(pinDialog === 'person' ? 'Their PIN is saved.' : 'The helper PIN is saved.');
+              setPinDialog(null);
+            }}
+          />
+          <div className="modal-actions">
+            <Button onClick={() => setPinDialog(null)}>Cancel</Button>
+          </div>
+        </Modal>
+      ) : null}
+      {confirm === 'lock-off' ? (
+        <ConfirmDialog
+          title="Turn off the PIN?"
+          body={<p>Familiar Place will open straight to Today. The Before unlock choices are kept, but won't be used.</p>}
+          confirmLabel="Turn off the PIN"
+          onCancel={() => setConfirm(null)}
+          onConfirm={async () => {
+            setConfirm(null);
+            try {
+              await saveSecurity({ personPin: null, lockEnabled: false });
+            } catch {
+              setMessage("That setting couldn't be saved. Please try again.");
+            }
+          }}
+        />
+      ) : null}
       {confirm === 'phone' ? (
         <ConfirmDialog
           title="Use the phone’s dialer?"

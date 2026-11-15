@@ -51,5 +51,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Whole-app flows tap the keypad dozens of times and hash real PINs.
+    testTimeout: 20_000,
   },
 });
