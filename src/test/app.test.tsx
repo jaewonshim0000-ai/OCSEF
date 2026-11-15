@@ -1143,3 +1143,72 @@ describe('"I need…" board', () => {
     expect(screen.queryByRole('heading', { name: /Good/ })).not.toBeInTheDocument();
   });
 });
+
+describe('"Help me tell someone" card', () => {
+  const DEFAULT = "I'm having trouble finding my way. Could you please help me?";
+
+  it('shares nothing personal until the helper chooses, and works while locked', async () => {
+    const { user } = await renderFresh();
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Lock' }));
+    await user.click(screen.getByRole('button', { name: 'Get help' }));
+    await user.click(screen.getByRole('button', { name: 'Show someone a message' }));
+    expect(screen.getByText(DEFAULT)).toBeInTheDocument();
+    expect(screen.queryByText(/My name is/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Call/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.getByRole('heading', { name: 'Need a hand?' })).toBeInTheDocument();
+
+    // The helper adds a message and the name.
+    await user.click(screen.getByRole('button', { name: 'Try PIN again' }));
+    await enterPin(user, '1357');
+    await user.click(await screen.findByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /^Help card/ }));
+    // Nobody to call yet, so that switch can't be turned on.
+    expect(screen.getByRole('switch', { name: 'Who to call' })).toBeDisabled();
+    await user.type(screen.getByLabelText('Message'), 'I live nearby and I am lost.');
+    await user.click(screen.getByRole('switch', { name: 'Their name' }));
+    expect(screen.getByText('My name is Ada.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+
+    // Before unlock lists it.
+    goToHash('/setup/privacy');
+    expect(screen.getByText('Help card: their name')).toBeInTheDocument();
+
+    goToHash('/today');
+    await user.click(await screen.findByRole('button', { name: 'Lock' }));
+    await user.click(screen.getByRole('button', { name: 'Get help' }));
+    await user.click(screen.getByRole('button', { name: 'Show someone a message' }));
+    expect(screen.getByText('I live nearby and I am lost.')).toBeInTheDocument();
+    expect(screen.getByText('My name is Ada.')).toBeInTheDocument();
+  });
+
+  it('asks a stranger to call the trusted person (sample family)', async () => {
+    const { user } = await renderApp();
+    await user.click(screen.getByRole('button', { name: 'Get help' }));
+    await user.click(screen.getByRole('button', { name: 'Show someone a message' }));
+    expect(screen.getByText('My name is Peggy.')).toBeInTheDocument();
+    expect(screen.getByText('Please call Maya.')).toBeInTheDocument();
+  });
+
+  it('keeps the card message when everything is stopped from showing', async () => {
+    const { user, backend } = await unlockToSetup();
+    await user.click(screen.getByRole('button', { name: /^Help card/ }));
+    await user.type(screen.getByLabelText('Message'), 'Please help me find Maya.');
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+    goToHash('/setup/privacy');
+    await user.click(screen.getByRole('button', { name: 'Stop showing everything' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Stop showing everything' }));
+    await waitFor(async () =>
+      expect((await backend.getKV<{ helpCard: { message: string; name: boolean } }>('approvals'))?.helpCard).toEqual({
+        message: 'Please help me find Maya.',
+        name: false,
+        contact: false,
+        address: false,
+      }),
+    );
+  });
+});

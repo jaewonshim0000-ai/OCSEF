@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CalendarClock, ChevronRight, Eye, House, Images, Music, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
+import { CalendarClock, ChevronRight, Eye, House, IdCard, Images, Music, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
 import { useNav } from '../../app/nav';
 import { Button, Notice } from '../../components/ui';
 import { useStore } from '../../lib/store';
@@ -23,6 +23,7 @@ export function SetupHub() {
     { path: '/setup/routine', Icon: CalendarClock, label: 'Routine', hint: 'Today’s plan and step-by-step routines' },
     { path: '/setup/memories', Icon: Images, label: 'Memories', hint: `${data.memories.length} ${data.memories.length === 1 ? 'photo' : 'photos'}` },
     { path: '/setup/music', Icon: Music, label: 'Music', hint: `${data.songs.length} favourite ${data.songs.length === 1 ? 'song' : 'songs'}` },
+    { path: '/setup/card', Icon: IdCard, label: 'Help card', hint: 'What to show someone nearby' },
     {
       path: '/setup/privacy',
       Icon: ShieldCheck,
@@ -82,6 +83,10 @@ function countShown(p: ReturnType<typeof useStore>['preview']): number {
   if (p.you.photo) n++;
   if (p.you.voice) n++;
   if (p.routineCue) n++;
+  if (p.note) n++;
+  if (p.helpCard.name) n++;
+  if (p.helpCard.contact) n++;
+  if (p.helpCard.address) n++;
   if (p.contact) {
     if (p.contact.name) n++;
     if (p.contact.relationship) n++;

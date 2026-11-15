@@ -115,3 +115,12 @@ describe('the "I need…" board', () => {
     expect(resolveRoute('/needs?from=today', true).route.name).toBe('needs');
   });
 });
+
+describe('the help card', () => {
+  it('parses /card and keeps it while locked, with its own setup section', () => {
+    expect(parseRoute('/card').name).toBe('card');
+    expect(resolveRoute('/card', false).route.name).toBe('card');
+    expect(parseRoute('/setup/card')).toMatchObject({ name: 'setup', section: 'card' });
+    expect(resolveRoute('/setup/card', false).route.name).toBe('help');
+  });
+});

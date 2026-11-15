@@ -1,4 +1,4 @@
-import { ArrowLeft, KeyRound, Lock, MessageSquareText, Phone, PhoneOff, Users } from 'lucide-react';
+import { ArrowLeft, IdCard, KeyRound, Lock, MessageSquareText, Phone, PhoneOff, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { MusicCornerScope } from '../../app/music';
 import type { Flash } from '../../app/nav';
@@ -83,9 +83,14 @@ function LockedHelp({ preview, go, onTryPin, flash, openPath }: LockedProps) {
       <TodayNoteCard note={preview.note} />
       <TileGrid onOpen={go} />
       {openPath ? (
-        <Button icon={MessageSquareText} onClick={() => openPath('/needs')}>
-          I need…
-        </Button>
+        <>
+          <Button variant="primary" icon={IdCard} onClick={() => openPath('/card')}>
+            Show someone a message
+          </Button>
+          <Button icon={MessageSquareText} onClick={() => openPath('/needs')}>
+            I need…
+          </Button>
+        </>
       ) : null}
       {onTryPin ? (
         <Button icon={KeyRound} onClick={onTryPin}>

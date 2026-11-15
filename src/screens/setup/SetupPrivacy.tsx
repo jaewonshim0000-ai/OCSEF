@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { CalendarClock, EyeOff, House, ShieldCheck, UserRound, Users } from 'lucide-react';
+import { CalendarClock, EyeOff, House, IdCard, ShieldCheck, UserRound, Users } from 'lucide-react';
 import { ConfirmDialog } from '../../components/Modal';
 import { Button, Card, Notice } from '../../components/ui';
 import { emptyApprovals } from '../../lib/defaults';
@@ -98,9 +98,27 @@ export function SetupPrivacy() {
       <Group title="Routine" Icon={CalendarClock}>
         {p.routineCue ? (
           <Item label={`Reminder: “${p.routineCue}”`} onStop={() => revoke('Routine reminder', (x) => ({ ...x, routineCue: false }))} />
-        ) : (
-          <Empty />
-        )}
+        ) : null}
+        {p.note ? (
+          <Item label={`Today’s note: “${p.note.text}”`} onStop={() => revoke('Today’s note', (x) => ({ ...x, note: false }))} />
+        ) : null}
+        {!p.routineCue && !p.note ? <Empty /> : null}
+      </Group>
+
+      <Group title="Help card" Icon={IdCard}>
+        {p.helpCard.name ? (
+          <Item label="Help card: their name" onStop={() => revoke('Help card: their name', (x) => ({ ...x, helpCard: { ...x.helpCard, name: false } }))} />
+        ) : null}
+        {p.helpCard.contact ? (
+          <Item
+            label={`Help card: who to call (${p.helpCard.contact.name})`}
+            onStop={() => revoke('Help card: who to call', (x) => ({ ...x, helpCard: { ...x.helpCard, contact: false } }))}
+          />
+        ) : null}
+        {p.helpCard.address ? (
+          <Item label="Help card: home address" onStop={() => revoke('Help card: home address', (x) => ({ ...x, helpCard: { ...x.helpCard, address: false } }))} />
+        ) : null}
+        {!p.helpCard.name && !p.helpCard.contact && !p.helpCard.address ? <Empty /> : null}
       </Group>
 
       <p className="field-hint">To add something, open that section and turn on its “Show before unlock” switch.</p>
@@ -119,7 +137,8 @@ export function SetupPrivacy() {
           onCancel={() => setConfirmAll(false)}
           onConfirm={() => {
             setConfirmAll(false);
-            revoke('Everything', () => emptyApprovals());
+            // The card's message isn't shown on its own, so keep what the helper wrote.
+            revoke('Everything', (x) => ({ ...emptyApprovals(), helpCard: { ...emptyApprovals().helpCard, message: x.helpCard.message } }));
           }}
         />
       ) : null}

@@ -32,8 +32,10 @@ import { SetupSettings } from './screens/setup/SetupSettings';
 import { SetupWizard } from './screens/start/SetupWizard';
 import { Welcome } from './screens/start/Welcome';
 import { TodayNoteCard } from './components/TodayNote';
-import { MessageSquareText } from 'lucide-react';
+import { IdCard, MessageSquareText } from 'lucide-react';
 import { NeedsBoard } from './screens/NeedsBoard';
+import { HelpCard } from './screens/HelpCard';
+import { SetupCard } from './screens/setup/SetupCard';
 
 export function App({ backend, loader }: { backend?: Backend; loader?: DemoMediaLoader }) {
   return (
@@ -133,6 +135,9 @@ function HelpUnlocked() {
       <Heading sub="Choose one.">Need a hand?</Heading>
       <TodayNoteCard note={data.schedule.note} />
       <TileGrid onOpen={(tile) => navigate(`/${tile}?from=help`)} />
+      <Button variant="primary" icon={IdCard} onClick={() => navigate('/card?from=help')}>
+        Show someone a message
+      </Button>
       <Button icon={MessageSquareText} onClick={() => navigate('/needs?from=help')}>
         I need…
       </Button>
@@ -186,6 +191,8 @@ function ScreenSwitch() {
       return <YouFull />;
     case 'needs':
       return <NeedsBoard />;
+    case 'card':
+      return <HelpCard />;
     case 'routine':
       return <RoutineFull />;
     case 'routine-play':
@@ -243,6 +250,8 @@ function SetupScreens() {
   switch (route.section) {
     case 'you':
       return <SetupYou />;
+    case 'card':
+      return <SetupCard />;
     case 'home':
       return id ? <SetupSpace spaceId={id} /> : <SetupHome />;
     case 'family':

@@ -19,10 +19,11 @@ export type RouteName =
   | 'setup'
   | 'welcome'
   | 'needs'
+  | 'card'
   | 'start'
   | 'not-found';
 
-export const SETUP_SECTIONS = ['you', 'home', 'family', 'routine', 'memories', 'music', 'privacy', 'settings'] as const;
+export const SETUP_SECTIONS = ['you', 'home', 'family', 'routine', 'memories', 'music', 'card', 'privacy', 'settings'] as const;
 export type SetupSection = (typeof SETUP_SECTIONS)[number];
 
 export interface Route {
@@ -39,7 +40,7 @@ export interface Route {
 const TILES: readonly TileId[] = ['home', 'family', 'you', 'routine'];
 
 /** Routes that may render while Familiar Place is locked. */
-const LOCKED_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>(['lock', 'help', 'locked-tile', 'locked-call', 'needs']);
+const LOCKED_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>(['lock', 'help', 'locked-tile', 'locked-call', 'needs', 'card']);
 
 export function isLockedSafe(name: RouteName): boolean {
   return LOCKED_ROUTES.has(name);
@@ -59,6 +60,8 @@ export function parseRoute(rawPath: string): Route {
   switch (a) {
     case 'lock':
       return parts.length === 1 ? { ...base, name: 'lock' } : { ...base, name: 'not-found' };
+    case 'card':
+      return parts.length === 1 ? { ...base, name: 'card' } : { ...base, name: 'not-found' };
     case 'needs':
       return parts.length === 1 ? { ...base, name: 'needs' } : { ...base, name: 'not-found' };
     case 'welcome':
