@@ -661,9 +661,11 @@ describe('helper gate', () => {
     expect(screen.getByRole('heading', { name: 'Helper setup' })).toBeInTheDocument();
 
     vi.setSystemTime(Date.now() + 10 * 60_000);
+    // The next tap in Helper setup finds the window closed and shows the gate.
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
-    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
     expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('heading', { name: /Good/ })).toBeInTheDocument();
   });
 
   it('Cancel returns to Today without opening setup', async () => {
@@ -868,5 +870,22 @@ describe('review fixes', () => {
     await user.click(await screen.findByRole('button', { name: 'Replace with backup' }, { timeout: 4000 }));
     // Storage was cleared before the failure, so the app must not keep showing Ada.
     expect(await screen.findByRole('heading', { name: 'Welcome to Familiar Place' }, { timeout: 4000 })).toBeInTheDocument();
+  });
+
+  it('the helper window closes after 10 minutes even without leaving the page', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      const { user } = await renderFresh();
+      await quickSetup(user);
+      await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+      await enterPin(user, HELPER_PIN);
+      await user.click(await screen.findByRole('button', { name: /Settings and reset/ }));
+      vi.setSystemTime(Date.now() + 10 * 60_000);
+      await user.click(screen.getByRole('button', { name: 'Change helper PIN' }));
+      expect(screen.getByRole('heading', { name: 'Enter the helper PIN' })).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { MusicCornerScope, MusicProvider } from './app/music';
 import { NavProvider, useNav } from './app/nav';
 import { RestoreDialog } from './components/RestoreDialog';
@@ -196,6 +196,17 @@ function GateWithRestore() {
 function SetupScreens() {
   const { route, isHelperOpen } = useNav();
   const { data } = useStore();
+  // Recheck the 10-minute helper window on every tap or key, so it also closes
+  // while the helper stays on one page. The tap that finds it closed lands on the gate.
+  const [, recheck] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    document.addEventListener('pointerdown', recheck, true);
+    document.addEventListener('keydown', recheck, true);
+    return () => {
+      document.removeEventListener('pointerdown', recheck, true);
+      document.removeEventListener('keydown', recheck, true);
+    };
+  }, []);
   // The sample family has no helper PIN, so it skips the gate.
   if (data.setup.mode === 'real' && !isHelperOpen()) return <GateWithRestore />;
   const id = route.id;
