@@ -2,9 +2,11 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
+import { encodeBackup } from '../lib/backup';
 import { MemoryBackend } from '../lib/db';
-import { seedSample, type DemoMediaLoader } from '../lib/repo';
+import { collectBackup, seedSample, type DemoMediaLoader } from '../lib/repo';
 import { DEMO_MEDIA, SAMPLE_PIN } from '../lib/seed';
+import type { MediaRecord } from '../lib/types';
 
 const loader: DemoMediaLoader = async (backend) => {
   const ids = new Set<string>();
@@ -834,5 +836,37 @@ describe('real-use presentation', () => {
     await enterPin(user, HELPER_PIN);
     await user.click(await screen.findByRole('button', { name: /Before unlock/ }));
     expect(screen.getByText(/The lock is off, so nothing here is used right now/)).toBeInTheDocument();
+  });
+});
+
+describe('review fixes', () => {
+  it('a restore that fails partway shows what is really saved, not the old profile', async () => {
+    class FlakyMedia extends MemoryBackend {
+      failMedia = false;
+      async putMedia(record: MediaRecord): Promise<void> {
+        if (this.failMedia) throw new Error('No space left');
+        return super.putMedia(record);
+      }
+    }
+    // A backup that holds photos and recordings, made from the sample family.
+    const source = new MemoryBackend();
+    const sample = await seedSample(source, loader);
+    const file = await encodeBackup(await collectBackup(source, sample), 'riverton-2026');
+
+    const backend = new FlakyMedia();
+    const { user } = await renderFresh(backend);
+    await quickSetup(user);
+    await user.click(screen.getByRole('button', { name: 'Helper setup' }));
+    await enterPin(user, HELPER_PIN);
+    await user.click(await screen.findByRole('button', { name: /Settings and reset/ }));
+    await user.click(screen.getByRole('button', { name: 'Restore a backup' }));
+    const dialog = screen.getByRole('dialog');
+    await user.upload(within(dialog).getByLabelText('Backup file'), new File([file], 'b.fpbackup'));
+    await user.type(within(dialog).getByLabelText('Backup password'), 'riverton-2026');
+    await user.click(within(dialog).getByRole('button', { name: 'Restore' }));
+    backend.failMedia = true;
+    await user.click(await screen.findByRole('button', { name: 'Replace with backup' }, { timeout: 4000 }));
+    // Storage was cleared before the failure, so the app must not keep showing Ada.
+    expect(await screen.findByRole('heading', { name: 'Welcome to Familiar Place' }, { timeout: 4000 })).toBeInTheDocument();
   });
 });

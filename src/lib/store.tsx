@@ -143,14 +143,29 @@ export function StoreProvider({ children, backend: injected, loader = fetchDemoM
 
   const mediaUrl = useCallback((id: MediaId) => cacheRef.current.url(id), []);
 
-  const startSample = useCallback(
-    () =>
+  /**
+   * Runs an operation that replaces everything. If it fails partway (for
+   * example, out of space after storage was cleared), show what storage really
+   * holds now instead of the data from before.
+   */
+  const replaceAll = useCallback(
+    (run: () => Promise<AppData>) =>
       enqueue(async () => {
         cacheRef.current.forgetAll();
         pendingMedia.current.clear();
-        commit(await seedSample(backendRef.current, loader));
+        try {
+          commit(await run());
+        } catch (e) {
+          commit(await loadAppData(backendRef.current).catch(() => emptyAppData()));
+          throw e;
+        }
       }),
-    [commit, enqueue, loader],
+    [commit, enqueue],
+  );
+
+  const startSample = useCallback(
+    () => replaceAll(() => seedSample(backendRef.current, loader)),
+    [replaceAll, loader],
   );
 
   const snapshot = useCallback(() => dataRef.current, []);
@@ -164,24 +179,11 @@ export function StoreProvider({ children, backend: injected, loader = fetchDemoM
   const estimateBackupBytes = useCallback(() => estimateBytes(backendRef.current, dataRef.current), []);
 
   const applyBackup = useCallback(
-    (contents: BackupContents) =>
-      enqueue(async () => {
-        cacheRef.current.forgetAll();
-        pendingMedia.current.clear();
-        commit(await restoreBackupContents(backendRef.current, contents));
-      }),
-    [commit, enqueue],
+    (contents: BackupContents) => replaceAll(() => restoreBackupContents(backendRef.current, contents)),
+    [replaceAll],
   );
 
-  const doErase = useCallback(
-    () =>
-      enqueue(async () => {
-        cacheRef.current.forgetAll();
-        pendingMedia.current.clear();
-        commit(await eraseEverything(backendRef.current));
-      }),
-    [commit, enqueue],
-  );
+  const doErase = useCallback(() => replaceAll(() => eraseEverything(backendRef.current)), [replaceAll]);
 
   const preview = useMemo(() => buildLockedPreview(data), [data]);
 
